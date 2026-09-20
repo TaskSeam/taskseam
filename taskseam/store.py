@@ -1,0 +1,141 @@
+"""SQLite storage for explicit task events and versioned checkpoints."""
+
+import json
+import sqlite3
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def _now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _id():
+    return uuid.uuid4().hex[:12]
+
+
+class Store:
+    def __init__(self, path):
+        self.path = Path(path).expanduser()
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.db = sqlite3.connect(str(self.path))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA foreign_keys = ON")
+        self.db.executescript("""
+            CREATE TABLE IF NOT EXISTS tasks (
+                id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS events (
+                id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+                source TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS items (
+                id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+                kind TEXT NOT NULL CHECK (kind IN ('decision','question','constraint')),
+                body TEXT NOT NULL, event_id TEXT NOT NULL REFERENCES events(id),
+                supersedes TEXT REFERENCES items(id), created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS checkpoints (
+                id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+                created_at TEXT NOT NULL, snapshot TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS events_task_idx ON events(task_id);
+            CREATE INDEX IF NOT EXISTS items_task_idx ON items(task_id);
+            CREATE INDEX IF NOT EXISTS checkpoints_task_idx ON checkpoints(task_id);
+        """)
+        self.db.commit()
+
+    def close(self):
+        self.db.close()
+
+    def create_task(self, title):
+        task_id = _id()
+        with self.db:
+            self.db.execute("INSERT INTO tasks VALUES (?, ?, ?)", (task_id, title, _now()))
+        return task_id
+
+    def task(self, task_id):
+        row = self.db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        if row is None:
+            raise ValueError("Unknown task: " + task_id)
+        return dict(row)
+
+    def tasks(self):
+        return [dict(row) for row in self.db.execute("SELECT * FROM tasks ORDER BY created_at DESC")]
+
+    def add_event(self, task_id, source, body):
+        self.task(task_id)
+        event_id = _id()
+        with self.db:
+            self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
+                            (event_id, task_id, source, body, _now()))
+        return event_id
+
+    def add_item(self, task_id, kind, body, source, supersedes=None):
+        self.task(task_id)
+        if kind not in ("decision", "question", "constraint"):
+            raise ValueError("Invalid item kind: " + kind)
+        if supersedes:
+            old = self.db.execute("SELECT task_id, kind FROM items WHERE id = ?", (supersedes,)).fetchone()
+            if old is None or old["task_id"] != task_id or old["kind"] != kind:
+                raise ValueError("Superseded item must exist in the same task and have the same kind")
+            if self.db.execute("SELECT 1 FROM items WHERE supersedes = ?", (supersedes,)).fetchone():
+                raise ValueError("Item has already been superseded")
+        event_id, item_id = _id(), _id()
+        with self.db:
+            self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
+                            (event_id, task_id, source, body, _now()))
+            self.db.execute("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (item_id, task_id, kind, body, event_id, supersedes, _now()))
+        return item_id
+
+    def items(self, task_id):
+        self.task(task_id)
+        rows = self.db.execute("""
+            SELECT i.*, e.source FROM items i JOIN events e ON e.id = i.event_id
+            WHERE i.task_id = ? ORDER BY i.created_at, i.rowid
+        """, (task_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+    def current_items(self, task_id):
+        rows = self.items(task_id)
+        replaced = {row["supersedes"] for row in rows if row["supersedes"]}
+        return [row for row in rows if row["id"] not in replaced]
+
+    def explain(self, item_id):
+        row = self.db.execute("""
+            SELECT i.*, e.source, e.body AS evidence, e.created_at AS event_time
+            FROM items i JOIN events e ON e.id = i.event_id WHERE i.id = ?
+        """, (item_id,)).fetchone()
+        if row is None:
+            raise ValueError("Unknown item: " + item_id)
+        return dict(row)
+
+    def checkpoint(self, task_id):
+        snapshot = [row["id"] for row in self.current_items(task_id)]
+        checkpoint_id = _id()
+        with self.db:
+            self.db.execute("INSERT INTO checkpoints VALUES (?, ?, ?, ?)",
+                            (checkpoint_id, task_id, _now(), json.dumps(snapshot)))
+        return checkpoint_id
+
+    def _checkpoint(self, checkpoint_id):
+        row = self.db.execute("SELECT rowid AS sequence, * FROM checkpoints WHERE id = ?", (checkpoint_id,)).fetchone()
+        if row is None:
+            raise ValueError("Unknown checkpoint: " + checkpoint_id)
+        return dict(row)
+
+    def delta(self, base_id, head_id):
+        base, head = self._checkpoint(base_id), self._checkpoint(head_id)
+        if base["task_id"] != head["task_id"]:
+            raise ValueError("Checkpoints belong to different tasks")
+        if base["sequence"] > head["sequence"]:
+            raise ValueError("Base checkpoint is newer than head checkpoint")
+        before, after = set(json.loads(base["snapshot"])), set(json.loads(head["snapshot"]))
+        by_id = {row["id"]: row for row in self.items(base["task_id"])}
+        return {
+            "task": self.task(base["task_id"]), "base": base_id, "head": head_id,
+            "added": [by_id[item_id] for item_id in json.loads(head["snapshot"]) if item_id not in before],
+            "removed": [by_id[item_id] for item_id in json.loads(base["snapshot"]) if item_id not in after],
+        }

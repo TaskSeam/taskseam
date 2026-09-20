@@ -4,7 +4,7 @@
 
 TaskSeam is a project for carrying the state of your work between AI tools. When a task moves from ChatGPT to Claude to Codex, the next assistant should understand the current goal, accepted decisions, open questions, and relevant files without asking you to reconstruct the story.
 
-The project is at the **concept and early development stage**. This repository does not yet contain a working capture tool, installer, or integration. The first goal is to prove one useful, trustworthy handoff.
+The project is in **early development**. A local CLI can record task state and produce checkpoint deltas today. Automatic capture and integrations with AI tools have not been built yet. The first goal is to prove one useful, trustworthy handoff.
 
 ## The problem
 
@@ -27,7 +27,32 @@ Relevant artifact: docs/event-schema.md
 Each item links back to the conversation or file that supports it.
 ```
 
-That example describes the intended experience, not a feature available today.
+The CLI can record and compare these state changes when you enter them manually. Automatic detection and delivery to Codex are still planned.
+
+## Try the local prototype
+
+Requires Python 3.9 or newer. From the repository root:
+
+```bash
+python3 -m taskseam --db .taskseam/state.db task create "Build capture prototype"
+```
+
+The command prints a task ID. Use that ID in the commands below; each `item` command also prints an item ID.
+
+```bash
+python3 -m taskseam --db .taskseam/state.db item TASK_ID decision "Use Markdown" --source chatgpt
+python3 -m taskseam --db .taskseam/state.db checkpoint TASK_ID
+python3 -m taskseam --db .taskseam/state.db item TASK_ID decision "Use SQLite" --source claude --supersedes FIRST_ITEM_ID
+python3 -m taskseam --db .taskseam/state.db item TASK_ID question "How should browser capture permissions work?" --source claude
+python3 -m taskseam --db .taskseam/state.db checkpoint TASK_ID
+python3 -m taskseam --db .taskseam/state.db delta FIRST_CHECKPOINT_ID SECOND_CHECKPOINT_ID
+python3 -m taskseam --db .taskseam/state.db context TASK_ID
+python3 -m taskseam --db .taskseam/state.db explain SQLITE_ITEM_ID
+```
+
+Output is JSON. The database stays on your machine, and `.taskseam/` is ignored by Git. Source names are labels you enter manually; the prototype does not verify or capture those sources. You can also install the CLI locally with `python3 -m pip install -e .` and run `taskseam` instead of `python3 -m taskseam`.
+
+Run the tests with `python3 -m unittest discover -s tests -v`.
 
 ## How TaskSeam is intended to work
 

@@ -2,3 +2,6 @@
 /PROJECT_BLUEPRINT.md
 /LAUNCH_CHECKLIST.md
 /PRIVATE_PRODUCT_NOTES.md
+/.taskseam/
+__pycache__/
+*.pyc
