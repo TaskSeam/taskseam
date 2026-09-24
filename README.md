@@ -2,6 +2,8 @@
 
 **Switch AI. Keep working.**
 
+[Website](https://taskseam.github.io/taskseam/) · [Five-minute demo](docs/DEMO.md) · [Integrations](docs/INTEGRATIONS.md) · [Privacy](PRIVACY.md)
+
 TaskSeam is being built as a **local-first, versioned task-state layer** for work that crosses AI tools. Its goal is to reconstruct the current state of a task, record how that state changed, and give each assistant only the delta it has not seen—with source evidence for every item.
 
 ```text

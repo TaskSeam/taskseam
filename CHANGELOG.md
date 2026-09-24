@@ -15,3 +15,8 @@ All notable changes to TaskSeam will be documented here.
 - Add question resolution as an evidence-backed state transition.
 - Add human correction of supersession relationships between existing state items.
 - Add per-target delivery checkpoints and automatic continuation deltas.
+- Add automatic Codex and Claude Code setup detection.
+- Add a portable agent plugin for Codex, VS Code, and compatible hosts.
+- Add approved MCP writes for accepted decisions, constraints, and question resolutions.
+- Add an authenticated localhost bridge and reviewed ChatGPT/Claude browser capture preview.
+- Add public onboarding, integration, demo, privacy, and landing-page documentation.

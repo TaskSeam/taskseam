@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="TaskSeam keeps accepted decisions, open questions, and source evidence continuous across AI tools.">
+  <title>TaskSeam — Switch AI. Keep working.</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="#top" aria-label="TaskSeam home"><span>TS</span> TaskSeam</a>
+    <nav aria-label="Main navigation">
+      <a href="#demo">Demo</a>
+      <a href="#integrations">Integrations</a>
+      <a href="https://github.com/TaskSeam/taskseam">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <p class="eyebrow">LOCAL-FIRST TASK CONTINUITY</p>
+      <h1>Switch AI.<br><em>Keep working.</em></h1>
+      <p class="lede">Carry accepted decisions, constraints, open questions, and source evidence from ChatGPT or Claude into Codex and VS Code—without handing every tool your full transcript.</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/TaskSeam/taskseam#try-taskseam-in-five-minutes">Try the alpha</a>
+        <a class="button" href="https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md">Run the demo</a>
+      </div>
+      <div class="install" aria-label="Install command">
+        <code>pipx install git+https://github.com/TaskSeam/taskseam.git</code>
+        <button id="copy" type="button">Copy</button>
+      </div>
+      <p class="availability">Open-source alpha · Apache-2.0 · Python 3.9+</p>
+    </section>
+
+    <section class="problem wrap">
+      <div>
+        <p class="eyebrow">THE GAP BETWEEN CHATS</p>
+        <h2>Your task is larger than one conversation.</h2>
+      </div>
+      <p>Summaries flatten history. Shared memory retrieves related facts. TaskSeam maintains the current versioned state of a task and computes what changed since each collaborator last saw it.</p>
+    </section>
+
+    <section id="demo" class="demo wrap">
+      <p class="eyebrow">ONE TASK, THREE TOOLS</p>
+      <h2>A handoff that carries decisions instead of transcript noise.</h2>
+      <div class="flow" aria-label="TaskSeam example flow">
+        <article>
+          <span class="number">01</span>
+          <h3>Discuss in Claude</h3>
+          <p>Claude recommends SQLite. You explicitly accept a hybrid design.</p>
+          <span class="tag">source: claude-web</span>
+        </article>
+        <div class="arrow" aria-hidden="true">→</div>
+        <article class="state">
+          <span class="number">02</span>
+          <h3>TaskSeam tracks state</h3>
+          <p><strong>Current:</strong> SQLite is authoritative; Markdown snapshots are deterministic.</p>
+          <span class="tag">supersedes earlier decision</span>
+        </article>
+        <div class="arrow" aria-hidden="true">→</div>
+        <article>
+          <span class="number">03</span>
+          <h3>Continue in Codex</h3>
+          <p>Codex receives only the decision and constraint it has not seen.</p>
+          <span class="tag">delta: 2 items</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="principles wrap">
+      <article><strong>Local by default</strong><p>Project state lives in a local SQLite database ignored by Git.</p></article>
+      <article><strong>Evidence attached</strong><p>Every durable item points back to the event that introduced it.</p></article>
+      <article><strong>Review before capture</strong><p>Browser imports stay editable and require an explicit save.</p></article>
+      <article><strong>Per-tool deltas</strong><p>Each agent receives only what changed since its last handoff.</p></article>
+    </section>
+
+    <section id="integrations" class="integrations wrap">
+      <p class="eyebrow">WORKS WHERE YOU WORK</p>
+      <h2>One local state layer. Multiple agent surfaces.</h2>
+      <div class="grid">
+        <article><h3>Codex</h3><p>CLI, IDE extension, MCP, and installable agent plugin.</p><span>Working alpha</span></article>
+        <article><h3>Claude Code</h3><p>Local MCP setup with workspace-aware task discovery.</p><span>Working alpha</span></article>
+        <article><h3>VS Code</h3><p>Portable Agent Plugin for GitHub Copilot Agent mode.</p><span>Install from source</span></article>
+        <article><h3>ChatGPT + Claude web</h3><p>User-initiated reviewed capture through a paired local bridge.</p><span>Developer preview</span></article>
+      </div>
+    </section>
+
+    <section class="cta wrap">
+      <p class="eyebrow">PUBLIC ALPHA</p>
+      <h2>Help test continuity across real work.</h2>
+      <p>Run the five-minute demo, inspect the local data model, and tell us where a handoff loses meaning.</p>
+      <a class="button primary" href="https://github.com/TaskSeam/taskseam">View TaskSeam on GitHub</a>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>TaskSeam · Apache-2.0</span>
+    <a href="https://github.com/TaskSeam/taskseam/blob/main/SECURITY.md">Security</a>
+    <a href="https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md">Privacy</a>
+    <a href="https://github.com/TaskSeam/taskseam/blob/main/ROADMAP.md">Roadmap</a>
+  </footer>
+  <script src="site.js"></script>
+</body>
+</html>

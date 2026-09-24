@@ -28,6 +28,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/TaskSeam/taskseam"
+Documentation = "https://taskseam.github.io/taskseam/"
 Repository = "https://github.com/TaskSeam/taskseam"
 Issues = "https://github.com/TaskSeam/taskseam/issues"
 
