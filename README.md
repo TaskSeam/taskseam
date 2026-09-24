@@ -18,7 +18,33 @@ TaskSeam is built around four questions:
 3. What changed since this particular tool last participated?
 4. What evidence supports every item delivered?
 
-> **Alpha status:** `0.1.0` provides the local CLI, SQLite state model, checkpoints, deltas, localhost API, and MCP delivery. Task matching, automatic extraction, browser capture, and correction UX are still under development. The current release is the foundation, not the completed vision.
+> **Alpha status:** `0.1.0` provides the local CLI, SQLite state model, checkpoints, deltas, authenticated localhost API, MCP delivery, an agent plugin, and reviewed browser capture. Automatic task matching, extraction from arbitrary conversations, polished correction UX, and store distribution are still under development.
+
+## Try TaskSeam in five minutes
+
+The shortest working path uses Codex or Claude Code:
+
+```bash
+pipx install git+https://github.com/TaskSeam/taskseam.git
+taskseam setup
+cd your-project
+taskseam init "Describe the work you want to continue"
+```
+
+Start a new agent session in that project. TaskSeam can deliver current task state, remember only conclusions you explicitly accept, and send that agent only later changes on its next visit.
+
+For a guided proof using two AI tools, follow the [end-to-end demo](docs/DEMO.md). For setup by tool, see the [integration guide](docs/INTEGRATIONS.md).
+
+### What is available today?
+
+| Surface | Current experience | Distribution status |
+|---|---|---|
+| Codex CLI and IDE extension | MCP plus installable TaskSeam agent plugin | Working alpha |
+| Claude Code | MCP configured by `taskseam setup` | Working alpha |
+| VS Code with Copilot Agent mode | Portable TaskSeam agent plugin | Working alpha; install from source |
+| ChatGPT and Claude websites | Reviewed capture extension plus local bridge | Developer preview; unpacked extension |
+
+The browser extension is not in the Chrome Web Store yet. PyPI publishing is also pending, so the current install command uses GitHub. These limitations are stated here so visitors can distinguish the working alpha from the intended one-click public experience.
 
 ## The problem
 
@@ -52,11 +78,11 @@ Open question: How should browser capture permissions work?
 Each item links back to the event that supports it.
 ```
 
-The alpha can record and compare these changes when you enter them manually, and MCP can deliver the stored context to an AI tool. Automatic capture and detection are planned.
+The alpha records and compares these changes through CLI commands, agent-approved MCP writes, or reviewed browser packets. MCP then delivers stored context or only unseen changes to another AI tool.
 
 ## Install
 
-TaskSeam requires Python 3.9 or newer. Install it from PyPI with:
+TaskSeam requires Python 3.9 or newer. After the first PyPI release, installation will be:
 
 ```bash
 python3 -m pip install taskseam
@@ -64,7 +90,7 @@ python3 -m pip install taskseam
 
 Because TaskSeam is a command-line application, [`pipx`](https://pipx.pypa.io/) is also a good option when you want it isolated from your other Python packages: `pipx install taskseam`.
 
-Until the first PyPI release is available, install directly from GitHub:
+For the current alpha, install directly from GitHub:
 
 ```bash
 pipx install git+https://github.com/TaskSeam/taskseam.git
@@ -77,6 +103,8 @@ git clone https://github.com/TaskSeam/taskseam.git
 cd taskseam
 python3 -m pip install -e .
 ```
+
+After installation, use the [onboarding guide](docs/QUICKSTART.md) for the shortest setup.
 
 ## Record task state
 
@@ -115,7 +143,7 @@ If two existing items were imported without their relationship, correct it with 
 
 `taskseam handoff --to codex` returns the current state on first delivery and only the checkpoint delta on later deliveries. Each target has an independent delivery checkpoint. The equivalent `taskseam_continue` MCP tool performs the same operation and marks the returned changes as delivered.
 
-Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
+Output is JSON. CLI source names are labels entered by the caller. Browser imports retain the reviewed assistant response as local evidence.
 
 ## Import reviewed state from a conversation
 
@@ -198,7 +226,7 @@ codex mcp add taskseam --env TASKSEAM_DB=/absolute/path/to/taskseam.db -- taskse
 
 ## Local integration API
 
-Run the API for a future browser extension or another local client:
+Run the API for the browser extension or another local client:
 
 ```bash
 taskseam serve
