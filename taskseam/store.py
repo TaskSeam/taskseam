@@ -24,7 +24,7 @@ class Store:
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.execute("PRAGMA busy_timeout = 5000")
         schema_version = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if schema_version > 2:
+        if schema_version > 3:
             self.db.close()
             raise ValueError("Database was created by a newer TaskSeam version")
         self.db.executescript("""
@@ -50,10 +50,17 @@ class Store:
                 resolution_item_id TEXT NOT NULL UNIQUE REFERENCES items(id),
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS deliveries (
+                task_id TEXT NOT NULL REFERENCES tasks(id),
+                target TEXT NOT NULL,
+                checkpoint_id TEXT NOT NULL REFERENCES checkpoints(id),
+                delivered_at TEXT NOT NULL,
+                PRIMARY KEY (task_id, target)
+            );
             CREATE INDEX IF NOT EXISTS events_task_idx ON events(task_id);
             CREATE INDEX IF NOT EXISTS items_task_idx ON items(task_id);
             CREATE INDEX IF NOT EXISTS checkpoints_task_idx ON checkpoints(task_id);
-            PRAGMA user_version = 2;
+            PRAGMA user_version = 3;
         """)
         self.db.commit()
 
@@ -256,3 +263,37 @@ class Store:
             "added": [by_id[item_id] for item_id in json.loads(head["snapshot"]) if item_id not in before],
             "removed": [by_id[item_id] for item_id in json.loads(base["snapshot"]) if item_id not in after],
         }
+
+    def handoff(self, task_id, target):
+        self.task(task_id)
+        if not isinstance(target, str) or not target.strip():
+            raise ValueError("Handoff target cannot be empty")
+        target = target.strip().lower()
+        current = self.current_items(task_id)
+        current_ids = [item["id"] for item in current]
+        delivery = self.db.execute(
+            "SELECT checkpoint_id FROM deliveries WHERE task_id = ? AND target = ?",
+            (task_id, target),
+        ).fetchone()
+        base_id = delivery["checkpoint_id"] if delivery else None
+        if base_id:
+            previous = self._checkpoint(base_id)
+            if json.loads(previous["snapshot"]) == current_ids:
+                return {"task": self.task(task_id), "target": target, "base": base_id,
+                        "head": base_id, "added": [], "removed": [], "changed": False}
+        head_id = self.checkpoint(task_id)
+        if base_id:
+            result = self.delta(base_id, head_id)
+        else:
+            result = {"task": self.task(task_id), "base": None, "head": head_id,
+                      "added": current, "removed": []}
+        with self.db:
+            self.db.execute("""
+                INSERT INTO deliveries (task_id, target, checkpoint_id, delivered_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(task_id, target) DO UPDATE SET
+                    checkpoint_id = excluded.checkpoint_id,
+                    delivered_at = excluded.delivered_at
+            """, (task_id, target, head_id, _now()))
+        result.update({"target": target, "changed": bool(result["added"] or result["removed"])})
+        return result

@@ -80,6 +80,9 @@ def parser():
     supersede = commands.add_parser("supersede", help="Correctly link an old item to its replacement")
     supersede.add_argument("old_item_id")
     supersede.add_argument("--with", dest="new_item_id", required=True)
+    handoff = commands.add_parser("handoff", help="Deliver changes since a target's last handoff")
+    handoff.add_argument("--to", required=True, dest="target")
+    handoff.add_argument("--task-id", help="Defaults to the active workspace task")
     return p
 
 
@@ -150,7 +153,7 @@ def main(argv=None):
             return 0
         if args.command == "mcp":
             from .mcp import run
-            run(args.db)
+            run(args.db, task_id=active_task(workspace) if workspace else None)
             return 0
         if args.command == "version":
             from . import __version__
@@ -186,6 +189,11 @@ def main(argv=None):
                     raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
                 store.set_supersession(active_task(workspace), args.old_item_id, args.new_item_id)
                 result = {"superseded": args.old_item_id, "replacement": args.new_item_id}
+            elif args.command == "handoff":
+                task_id = args.task_id or (active_task(workspace) if workspace else None)
+                if not task_id:
+                    raise ValueError("Provide a task ID or run this command in a TaskSeam workspace")
+                result = store.handoff(task_id, args.target)
             elif args.command == "checkpoint":
                 task_id = args.task_id or (active_task(workspace) if workspace else None)
                 if not task_id:

@@ -52,8 +52,8 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 
 ## Milestone 4: Per-tool continuity
 
-- [ ] Record the checkpoint last delivered to each tool
-- [ ] Generate a bounded delta from that checkpoint
+- [x] Record the checkpoint last delivered to each tool
+- [x] Generate a delta from that checkpoint
 - [ ] Filter by target, purpose, permissions, and token budget
 - [ ] Deliver the result through MCP
 - [ ] Preview and approve sensitive handoffs

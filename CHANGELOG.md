@@ -14,3 +14,4 @@ All notable changes to TaskSeam will be documented here.
 - Add review-first conversation state packets with shared source evidence.
 - Add question resolution as an evidence-backed state transition.
 - Add human correction of supersession relationships between existing state items.
+- Add per-target delivery checkpoints and automatic continuation deltas.

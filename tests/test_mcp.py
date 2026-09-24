@@ -31,6 +31,19 @@ class McpTests(unittest.TestCase):
         value = json.loads(response["result"]["content"][0]["text"])
         self.assertEqual(value["items"][0]["body"], "Keep data local")
 
+    def test_continue_uses_active_task_and_tracks_delivery(self):
+        task = self.store.create_task("Active task")
+        self.store.add_item(task, "decision", "Keep data local", "manual")
+        request = {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {
+            "name": "taskseam_continue", "arguments": {"target": "codex"}
+        }}
+        first = handle(self.store, request, active_task_id=task)
+        first_value = json.loads(first["result"]["content"][0]["text"])
+        self.assertTrue(first_value["changed"])
+        second = handle(self.store, request, active_task_id=task)
+        second_value = json.loads(second["result"]["content"][0]["text"])
+        self.assertFalse(second_value["changed"])
+
 
 if __name__ == "__main__":
     unittest.main()

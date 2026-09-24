@@ -20,6 +20,12 @@ TOOLS = [
     {"name": "taskseam_explain", "description": "Show the source evidence for a state item",
      "inputSchema": {"type": "object", "properties": {"item_id": {"type": "string"}},
                      "required": ["item_id"]}},
+    {"name": "taskseam_continue",
+     "description": "Return changes since a target last received this task, then mark them delivered",
+     "inputSchema": {"type": "object", "properties": {
+         "task_id": {"type": "string", "description": "Omit for the active workspace task"},
+         "target": {"type": "string", "description": "Receiving tool, such as codex"}},
+         "required": ["target"]}},
 ]
 
 
@@ -31,7 +37,7 @@ def _error(request_id, code, message):
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
 
 
-def handle(store, request):
+def handle(store, request, active_task_id=None):
     request_id, method = request.get("id"), request.get("method")
     if method == "initialize":
         return _result(request_id, {
@@ -58,6 +64,11 @@ def handle(store, request):
             value = store.delta(args["base"], args["head"])
         elif name == "taskseam_explain":
             value = store.explain(args["item_id"])
+        elif name == "taskseam_continue":
+            task_id = args.get("task_id") or active_task_id
+            if not task_id:
+                raise ValueError("task_id is required outside an initialized workspace")
+            value = store.handoff(task_id, args["target"])
         else:
             return _error(request_id, -32602, "Unknown tool: " + str(name))
         return _result(request_id, {"content": [{"type": "text", "text": json.dumps(value, indent=2)}]})
@@ -65,14 +76,14 @@ def handle(store, request):
         return _result(request_id, {"content": [{"type": "text", "text": str(exc)}], "isError": True})
 
 
-def run(db_path, input_stream=None, output_stream=None):
+def run(db_path, input_stream=None, output_stream=None, task_id=None):
     input_stream = input_stream or sys.stdin
     output_stream = output_stream or sys.stdout
     store = Store(db_path)
     try:
         for line in input_stream:
             try:
-                response = handle(store, json.loads(line))
+                response = handle(store, json.loads(line), task_id)
             except (json.JSONDecodeError, TypeError) as exc:
                 response = _error(None, -32700, "Parse error: " + str(exc))
             if response is not None:

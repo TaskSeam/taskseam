@@ -83,17 +83,40 @@ class StoreTests(unittest.TestCase):
         path = Path(self.tmp.name) / "legacy.db"
         legacy = Store(path)
         legacy.db.execute("DROP TABLE resolutions")
+        legacy.db.execute("DROP TABLE deliveries")
         legacy.db.execute("PRAGMA user_version = 1")
         legacy.db.commit()
         legacy.close()
         migrated = Store(path)
         try:
-            self.assertEqual(migrated.db.execute("PRAGMA user_version").fetchone()[0], 2)
+            self.assertEqual(migrated.db.execute("PRAGMA user_version").fetchone()[0], 3)
             self.assertIsNotNone(migrated.db.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='resolutions'"
             ).fetchone())
+            self.assertIsNotNone(migrated.db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='deliveries'"
+            ).fetchone())
         finally:
             migrated.close()
+
+    def test_handoff_tracks_each_target_checkpoint(self):
+        first = self.store.add_item(self.task, "decision", "Use SQLite", "claude")
+        initial = self.store.handoff(self.task, "codex")
+        self.assertIsNone(initial["base"])
+        self.assertEqual([item["id"] for item in initial["added"]], [first])
+        self.assertTrue(initial["changed"])
+
+        unchanged = self.store.handoff(self.task, "codex")
+        self.assertFalse(unchanged["changed"])
+        self.assertEqual(unchanged["base"], unchanged["head"])
+
+        second = self.store.add_item(self.task, "constraint", "Stay local", "claude")
+        update = self.store.handoff(self.task, "codex")
+        self.assertEqual([item["id"] for item in update["added"]], [second])
+        self.assertEqual(update["base"], initial["head"])
+
+        other_target = self.store.handoff(self.task, "claude")
+        self.assertEqual({item["id"] for item in other_target["added"]}, {first, second})
 
 
 if __name__ == "__main__":

@@ -97,6 +97,7 @@ taskseam record question "How should browser capture permissions work?" --source
 taskseam checkpoint
 taskseam context
 taskseam status
+taskseam handoff --to codex
 ```
 
 Use `--supersedes ITEM_ID` with `taskseam record` when a new item replaces an earlier item. The advanced `task`, `item`, `delta`, and `explain` commands accept explicit IDs for scripting and multi-task workflows.
@@ -111,6 +112,8 @@ taskseam resolve QUESTION_ID \
 ```
 
 If two existing items were imported without their relationship, correct it with `taskseam supersede OLD_ITEM_ID --with NEW_ITEM_ID`.
+
+`taskseam handoff --to codex` returns the current state on first delivery and only the checkpoint delta on later deliveries. Each target has an independent delivery checkpoint. The equivalent `taskseam_continue` MCP tool performs the same operation and marks the returned changes as delivered.
 
 Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
 
