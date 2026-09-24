@@ -4,7 +4,7 @@
 
 TaskSeam keeps the accepted state of a project available when work moves between Codex, Claude Code, VS Code agents, ChatGPT, and Claude.
 
-[Website](https://taskseam.github.io/taskseam/) · [Editor setup](docs/EDITOR_SETUP.md) · [Quick start](docs/QUICKSTART.md) · [Demo](docs/DEMO.md) · [Privacy](PRIVACY.md)
+[Website](https://taskseam.github.io/taskseam/) · [Editor setup](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) · [Quick start](https://github.com/TaskSeam/taskseam/blob/main/docs/QUICKSTART.md) · [Demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) · [Privacy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md)
 
 > **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview. PyPI and extension-store distribution are being prepared.
 
@@ -64,7 +64,7 @@ TaskSeam stores project state locally under `.taskseam/`, which it adds to `.git
 | ChatGPT and Claude websites | Developer-preview browser extension with explicit review |
 | Claude Desktop general chat | Planned desktop extension with project selection |
 
-See the [editor setup guide](docs/EDITOR_SETUP.md) for the exact UI steps and the [integration guide](docs/INTEGRATIONS.md) for technical details.
+See the [editor setup guide](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) for the exact UI steps and the [integration guide](https://github.com/TaskSeam/taskseam/blob/main/docs/INTEGRATIONS.md) for technical details.
 
 ## Why this is different from shared memory
 
@@ -87,15 +87,15 @@ The goal is a small, explainable continuation rather than a transcript dump.
 - Browser results remain editable before saving.
 - TaskSeam does not operate an analytics, advertising, or hosted synchronization service.
 
-Read [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the current alpha boundaries.
+Read the [privacy policy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md) and [security policy](https://github.com/TaskSeam/taskseam/blob/main/SECURITY.md) for the current alpha boundaries.
 
 ## Try the complete flow
 
-The [five-minute demo](docs/DEMO.md) starts with a clean directory, accepts a project decision in one agent, continues in another, and verifies that the first agent later receives only what changed.
+The [five-minute demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) starts with a clean directory, accepts a project decision in one agent, continues in another, and verifies that the first agent later receives only what changed.
 
 ## Project status
 
-The public roadmap is in [ROADMAP.md](ROADMAP.md). Current priorities are:
+The [public roadmap](https://github.com/TaskSeam/taskseam/blob/main/ROADMAP.md) tracks the current priorities:
 
 1. Validate clean installation across supported operating systems.
 2. Publish the Python package to PyPI.
@@ -113,4 +113,6 @@ python3 -m venv .venv
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-TaskSeam is licensed under Apache-2.0. Contributions are welcome through focused issues and pull requests. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making broad architecture changes.
+TaskSeam is licensed under Apache-2.0. Contributions are welcome through focused issues and pull requests. Read the [contribution guide](https://github.com/TaskSeam/taskseam/blob/main/CONTRIBUTING.md) before making broad architecture changes.
+
+Created and maintained by **Sai Sandeep Kantareddy**.

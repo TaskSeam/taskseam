@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Continue versioned task state across AI agents with local evidence and per-agent deltas.",
   "author": {
-    "name": "TaskSeam contributors",
+    "name": "Sai Sandeep Kantareddy",
     "url": "https://github.com/TaskSeam/taskseam"
   },
   "homepage": "https://github.com/TaskSeam/taskseam",

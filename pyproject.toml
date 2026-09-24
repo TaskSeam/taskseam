@@ -5,13 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "taskseam"
 version = "0.1.0"
-description = "Versioned task state and evidence-backed deltas across AI tools"
+description = "Local-first task continuity across AI coding agents"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{name = "TaskSeam contributors"}]
-keywords = ["ai", "mcp", "context", "handoff", "local-first"]
+authors = [{name = "Sai Sandeep Kantareddy"}]
+maintainers = [{name = "Sai Sandeep Kantareddy"}]
+keywords = [
+  "ai-agents",
+  "coding-agents",
+  "codex",
+  "claude-code",
+  "vscode",
+  "mcp",
+  "local-first",
+  "context-engineering",
+  "task-continuity",
+  "developer-tools",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -31,6 +43,7 @@ Homepage = "https://github.com/TaskSeam/taskseam"
 Documentation = "https://taskseam.github.io/taskseam/"
 Repository = "https://github.com/TaskSeam/taskseam"
 Issues = "https://github.com/TaskSeam/taskseam/issues"
+Changelog = "https://github.com/TaskSeam/taskseam/blob/main/CHANGELOG.md"
 
 [project.scripts]
 taskseam = "taskseam.__main__:main"
