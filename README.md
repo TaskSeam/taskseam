@@ -147,6 +147,18 @@ taskseam setup
 
 Today this configures Codex and Claude Code when their CLIs are installed. Use `taskseam setup codex` or `taskseam setup claude-code` to configure only one. The stdio MCP server discovers the active workspace when an agent launches it, so the same user-level configuration works across initialized repositories. Codex CLI and its IDE extension share MCP configuration, as described in the [official OpenAI MCP setup documentation](https://developers.openai.com/learn/docs-mcp). Claude Code supports the same local stdio MCP pattern through its [official MCP integration](https://docs.anthropic.com/en/docs/claude-code/mcp).
 
+## Install the agent plugin
+
+The repository includes a portable TaskSeam agent plugin under `plugins/taskseam`. It bundles the MCP connection and instructions that tell an agent to retrieve unseen state, preserve provenance, and record only conclusions the user explicitly accepts.
+
+For local Codex testing, add this repository as a plugin marketplace, open `/plugins`, and install TaskSeam:
+
+```bash
+codex plugin marketplace add TaskSeam/taskseam
+```
+
+Start a new agent session after installation. The Python package must also be installed so the plugin can run the local `taskseam mcp` command. MCP write tools use the host's approval UI before recording durable state.
+
 Claude.ai and ChatGPT web sessions cannot start this local stdio process. For now, use `taskseam prompt` and reviewed import with those sites. A permissioned browser extension is planned so users can send accepted task state without copying JSON.
 
 Advanced users can still register a fixed database manually:

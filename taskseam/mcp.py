@@ -9,23 +9,44 @@ from .store import Store
 
 TOOLS = [
     {"name": "taskseam_list_tasks", "description": "List local TaskSeam tasks",
-     "inputSchema": {"type": "object", "properties": {}}},
+     "inputSchema": {"type": "object", "properties": {}},
+     "annotations": {"readOnlyHint": True}},
     {"name": "taskseam_context", "description": "Get the current state of a task",
      "inputSchema": {"type": "object", "properties": {"task_id": {"type": "string"}},
-                     "required": ["task_id"]}},
+                     "required": ["task_id"]}, "annotations": {"readOnlyHint": True}},
     {"name": "taskseam_delta", "description": "Get changes between two checkpoints",
      "inputSchema": {"type": "object", "properties": {
          "base": {"type": "string"}, "head": {"type": "string"}},
-         "required": ["base", "head"]}},
+         "required": ["base", "head"]}, "annotations": {"readOnlyHint": True}},
     {"name": "taskseam_explain", "description": "Show the source evidence for a state item",
      "inputSchema": {"type": "object", "properties": {"item_id": {"type": "string"}},
-                     "required": ["item_id"]}},
+                     "required": ["item_id"]}, "annotations": {"readOnlyHint": True}},
     {"name": "taskseam_continue",
      "description": "Return changes since a target last received this task, then mark them delivered",
      "inputSchema": {"type": "object", "properties": {
          "task_id": {"type": "string", "description": "Omit for the active workspace task"},
          "target": {"type": "string", "description": "Receiving tool, such as codex"}},
          "required": ["target"]}},
+    {"name": "taskseam_record",
+     "description": "Record one user-accepted decision, active constraint, or unresolved question",
+     "inputSchema": {"type": "object", "properties": {
+         "task_id": {"type": "string", "description": "Omit for the active workspace task"},
+         "kind": {"type": "string", "enum": ["decision", "constraint", "question"]},
+         "body": {"type": "string"},
+         "source": {"type": "string", "description": "Originating agent or user"},
+         "supersedes": {"type": "string", "description": "Earlier item replaced by this item"}},
+         "required": ["kind", "body", "source"]},
+     "annotations": {"readOnlyHint": False}},
+    {"name": "taskseam_resolve",
+     "description": "Resolve an open question with an explicitly accepted decision",
+     "inputSchema": {"type": "object", "properties": {
+         "task_id": {"type": "string", "description": "Omit for the active workspace task"},
+         "question_id": {"type": "string"},
+         "decision": {"type": "string"},
+         "source": {"type": "string", "description": "Originating agent or user"},
+         "supersedes": {"type": "string", "description": "Earlier decision replaced by this resolution"}},
+         "required": ["question_id", "decision", "source"]},
+     "annotations": {"readOnlyHint": False}},
 ]
 
 
@@ -69,6 +90,20 @@ def handle(store, request, active_task_id=None):
             if not task_id:
                 raise ValueError("task_id is required outside an initialized workspace")
             value = store.handoff(task_id, args["target"])
+        elif name == "taskseam_record":
+            task_id = args.get("task_id") or active_task_id
+            if not task_id:
+                raise ValueError("task_id is required outside an initialized workspace")
+            item_id = store.add_item(task_id, args["kind"], args["body"], args["source"],
+                                     args.get("supersedes"))
+            value = {"item_id": item_id, "recorded": True}
+        elif name == "taskseam_resolve":
+            task_id = args.get("task_id") or active_task_id
+            if not task_id:
+                raise ValueError("task_id is required outside an initialized workspace")
+            item_id = store.resolve_question(task_id, args["question_id"], args["decision"],
+                                             args["source"], args.get("supersedes"))
+            value = {"item_id": item_id, "resolved_question": args["question_id"]}
         else:
             return _error(request_id, -32602, "Unknown tool: " + str(name))
         return _result(request_id, {"content": [{"type": "text", "text": json.dumps(value, indent=2)}]})

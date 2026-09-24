@@ -1,0 +1,20 @@
+{
+  "name": "taskseam",
+  "interface": {
+    "displayName": "Taskseam"
+  },
+  "plugins": [
+    {
+      "name": "taskseam",
+      "source": {
+        "source": "local",
+        "path": "./plugins/taskseam"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

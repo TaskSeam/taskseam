@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "taskseam": {
+      "command": "taskseam",
+      "args": ["mcp"]
+    }
+  }
+}

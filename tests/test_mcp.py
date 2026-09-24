@@ -44,6 +44,21 @@ class McpTests(unittest.TestCase):
         second_value = json.loads(second["result"]["content"][0]["text"])
         self.assertFalse(second_value["changed"])
 
+    def test_record_and_resolve_use_active_task(self):
+        task = self.store.create_task("Active task")
+        record = handle(self.store, {"jsonrpc": "2.0", "id": 5, "method": "tools/call",
+                                    "params": {"name": "taskseam_record", "arguments": {
+                                        "kind": "question", "body": "Which format?",
+                                        "source": "codex"}}}, active_task_id=task)
+        question = json.loads(record["result"]["content"][0]["text"])["item_id"]
+        resolved = handle(self.store, {"jsonrpc": "2.0", "id": 6, "method": "tools/call",
+                                      "params": {"name": "taskseam_resolve", "arguments": {
+                                          "question_id": question, "decision": "Use JSON",
+                                          "source": "user"}}}, active_task_id=task)
+        value = json.loads(resolved["result"]["content"][0]["text"])
+        self.assertEqual(value["resolved_question"], question)
+        self.assertEqual([item["body"] for item in self.store.current_items(task)], ["Use JSON"])
+
 
 if __name__ == "__main__":
     unittest.main()

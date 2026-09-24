@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "taskseam",
+  "version": "0.1.0",
+  "description": "Continue versioned task state across AI agents with local evidence and per-agent deltas.",
+  "author": {
+    "name": "TaskSeam contributors",
+    "url": "https://github.com/TaskSeam/taskseam"
+  },
+  "homepage": "https://github.com/TaskSeam/taskseam",
+  "repository": "https://github.com/TaskSeam/taskseam",
+  "license": "Apache-2.0",
+  "keywords": ["continuity", "task-state", "mcp", "local-first"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "TaskSeam",
+        "shortDescription": "Continue work across AI agents.",
+        "longDescription": "Load unseen task changes, preserve accepted decisions and open questions, and trace every item to local source evidence.",
+        "developerName": "TaskSeam",
+        "category": "Productivity",
+        "capabilities": ["Local task continuity", "Evidence-backed state", "Per-agent deltas"],
+        "websiteURL": "https://github.com/TaskSeam/taskseam",
+        "defaultPrompt": [
+          "Continue this TaskSeam workspace from its latest unseen changes.",
+          "Show the current accepted decisions and unresolved questions.",
+          "Explain what changed in this task and cite its source evidence."
+        ]
+      }
+    }
+  }
+}
