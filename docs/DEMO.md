@@ -1,6 +1,6 @@
 # End-to-end TaskSeam demo
 
-This demonstration proves that one tool can add task state and another tool can receive only what changed.
+This demonstration proves that one agent can save accepted task state and another can receive only what changed. After setup, the user works through normal conversation rather than maintaining state with CLI commands.
 
 ## Prepare a clean project
 
@@ -12,43 +12,53 @@ taskseam init "Choose storage for a local-first application"
 taskseam setup
 ```
 
-## Record an initial decision
+These are one-time setup commands. Install the TaskSeam agent plugin as described in the [integration guide](INTEGRATIONS.md), then start a new agent session in this directory.
 
-```bash
-taskseam record decision \
-  "Use SQLite as the authoritative local store" \
-  --source user
-```
+## Accept a decision in the first agent
 
-Start Codex or Claude Code in this directory and ask:
+Ask Claude Code or Codex:
 
-> Continue this TaskSeam task and summarize its accepted state with source evidence.
+> For this local-first application, compare Markdown and SQLite storage. Recommend one approach, but do not treat it as accepted yet.
 
-The agent should retrieve the SQLite decision through TaskSeam.
+After reviewing its recommendation, respond:
 
-## Add a change from another source
+> I accept SQLite as the authoritative local store. Save that accepted decision for this TaskSeam task.
 
-In another terminal:
+The agent should propose a `taskseam_record` write through its normal tool approval screen. Approve it.
 
-```bash
-taskseam record constraint \
-  "Exports must be deterministic so Git diffs remain stable" \
-  --source user
-```
+## Continue in another agent
+
+Start a different supported agent in the same directory and ask:
+
+> Continue this TaskSeam task. Summarize its accepted state with source evidence.
+
+The second agent should retrieve the accepted SQLite decision without receiving the full earlier conversation.
+
+Tell the second agent:
+
+> Markdown exports must be deterministic so Git diffs remain stable. I accept this as an active constraint. Save it to TaskSeam.
+
+Approve the proposed TaskSeam write.
+
+## Return to the first agent
 
 Start a new session with the first agent and ask:
 
 > Continue this TaskSeam task. Tell me only what changed since you last received it.
 
-The response should contain only the newly added deterministic-export constraint.
+The response should contain the newly added deterministic-export constraint.
 
-## Verify the stored state
+## Inspect the local state
+
+This optional command lets you inspect what the agents saved:
 
 ```bash
 taskseam context
 ```
 
 This output should show the accepted decision and constraint with their sources. The demo works for any task title and state; the storage topic is example data rather than application logic.
+
+If an agent does not support MCP writes, use the CLI commands documented under **Manual and advanced state commands** in the main README.
 
 ## Optional browser capture
 

@@ -24,7 +24,7 @@ TaskSeam is built around four questions:
 
 ## Try TaskSeam in five minutes
 
-The shortest working path uses Codex or Claude Code:
+The shortest working path uses Codex or Claude Code. These are one-time setup commands, plus one initialization command for each project that should participate:
 
 ```bash
 pipx install git+https://github.com/TaskSeam/taskseam.git
