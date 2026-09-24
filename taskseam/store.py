@@ -102,6 +102,33 @@ class Store:
                             (item_id, task_id, kind, body, event_id, supersedes, _now()))
         return item_id
 
+    def import_items(self, task_id, source, evidence, items):
+        self.task(task_id)
+        if not isinstance(items, list) or not items:
+            raise ValueError("Import packet must contain at least one item")
+        normalized = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ValueError("Each imported item must be an object")
+            kind, body = item.get("kind"), item.get("body")
+            if kind not in ("decision", "question", "constraint"):
+                raise ValueError("Invalid imported item kind: " + str(kind))
+            if not isinstance(body, str) or not body.strip():
+                raise ValueError("Each imported item requires a non-empty body")
+            normalized.append((kind, body.strip()))
+        event_id = _id()
+        created = _now()
+        item_ids = []
+        with self.db:
+            self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
+                            (event_id, task_id, source, evidence, created))
+            for kind, body in normalized:
+                item_id = _id()
+                self.db.execute("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                (item_id, task_id, kind, body, event_id, None, created))
+                item_ids.append(item_id)
+        return {"event_id": event_id, "item_ids": item_ids}
+
     def items(self, task_id):
         self.task(task_id)
         rows = self.db.execute("""

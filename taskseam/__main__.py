@@ -67,6 +67,11 @@ def parser():
     setup = commands.add_parser("setup", help="Configure an AI tool to use TaskSeam")
     setup.add_argument("tool", choices=("codex",))
     setup.add_argument("--dry-run", action="store_true")
+    commands.add_parser("prompt", help="Print the prompt for creating an import packet")
+    import_command = commands.add_parser("import", help="Preview or apply a TaskSeam state packet")
+    import_command.add_argument("path", nargs="?", help="JSON file; omit to read standard input")
+    import_command.add_argument("--source", required=True)
+    import_command.add_argument("--apply", action="store_true", help="Write the reviewed packet")
     return p
 
 
@@ -86,6 +91,10 @@ def main(argv=None):
             root, config = initialize(Path.cwd(), title, create_task)
             print(json.dumps({"workspace": str(root), "project": config["project"],
                               "active_task": config["active_task"]}, indent=2))
+            return 0
+        if args.command == "prompt":
+            from .importer import PACKET_PROMPT
+            print(PACKET_PROMPT)
             return 0
         workspace = find_workspace()
         args.db = args.db or os.environ.get("TASKSEAM_DB") or default_db()
@@ -107,6 +116,26 @@ def main(argv=None):
             result = setup_codex(sys.executable, args.dry_run)
             print(json.dumps(result, indent=2))
             return 0
+        if args.command == "import":
+            from .importer import parse_packet
+            if not workspace:
+                raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
+            raw = Path(args.path).read_text(encoding="utf-8") if args.path else sys.stdin.read()
+            packet = parse_packet(raw)
+            if not args.apply:
+                print(json.dumps({"preview": packet["items"], "source": args.source,
+                                  "applied": False,
+                                  "next": "Review the items, then rerun with --apply"}, indent=2))
+                return 0
+            store = Store(args.db)
+            try:
+                imported = store.import_items(active_task(workspace), args.source, raw, packet["items"])
+                result = {"applied": True, "source": args.source, **imported,
+                          "items": packet["items"]}
+                print(json.dumps(result, indent=2))
+                return 0
+            finally:
+                store.close()
         if args.command == "serve":
             from .api import serve
             serve(args.db, args.host, args.port)

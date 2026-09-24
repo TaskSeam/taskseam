@@ -86,6 +86,7 @@ Initialize TaskSeam in a repository:
 cd my-project
 taskseam init "Build capture prototype"
 taskseam setup codex
+taskseam prompt
 ```
 
 This creates private repository-local storage, an active task, and a `.taskseam/` Git ignore rule. Normal commands discover the workspace from the current directory or any directory beneath it.
@@ -101,6 +102,22 @@ taskseam status
 Use `--supersedes ITEM_ID` with `taskseam record` when a new item replaces an earlier item. The advanced `task`, `item`, `delta`, and `explain` commands accept explicit IDs for scripting and multi-task workflows.
 
 Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
+
+## Import reviewed state from a conversation
+
+Run `taskseam prompt` and send its output at the end of a ChatGPT or Claude conversation. Save the returned JSON as `taskseam-packet.json`, then preview it:
+
+```bash
+taskseam import taskseam-packet.json --source claude-web
+```
+
+Nothing is stored during preview. After checking that proposals were not presented as accepted decisions and that sensitive context is absent, apply the packet:
+
+```bash
+taskseam import taskseam-packet.json --source claude-web --apply
+```
+
+All imported items link to the original packet as evidence. This reviewed import is an interim bridge for web assistants; automatic permissioned capture and extraction remain roadmap work.
 
 Outside an initialized workspace, TaskSeam stores data at `~/.local/share/taskseam/taskseam.db`. Set `TASKSEAM_DB` or use `--db` to choose another path explicitly.
 
