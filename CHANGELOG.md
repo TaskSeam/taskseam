@@ -9,3 +9,4 @@ All notable changes to TaskSeam will be documented here.
 - Add the `taskseam` command-line interface.
 - Add a localhost-only JSON API for local integrations.
 - Add a read-only MCP server for listing tasks, reading context and deltas, and explaining evidence.
+- Add repository initialization, workspace discovery, active-task recording, and status commands.

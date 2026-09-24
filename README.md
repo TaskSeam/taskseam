@@ -80,28 +80,28 @@ python3 -m pip install -e .
 
 ## Record task state
 
-Create a task:
+Initialize TaskSeam in a repository:
 
 ```bash
-taskseam --db .taskseam/state.db task create "Build capture prototype"
+cd my-project
+taskseam init "Build capture prototype"
 ```
 
-The command prints a task ID. Use that ID below; each item and checkpoint command also prints an ID.
+This creates private repository-local storage, an active task, and a `.taskseam/` Git ignore rule. Normal commands discover the workspace from the current directory or any directory beneath it.
 
 ```bash
-taskseam --db .taskseam/state.db item TASK_ID decision "Use Markdown" --source chatgpt
-taskseam --db .taskseam/state.db checkpoint TASK_ID
-taskseam --db .taskseam/state.db item TASK_ID decision "Use SQLite" --source claude --supersedes FIRST_ITEM_ID
-taskseam --db .taskseam/state.db item TASK_ID question "How should browser capture permissions work?" --source claude
-taskseam --db .taskseam/state.db checkpoint TASK_ID
-taskseam --db .taskseam/state.db delta FIRST_CHECKPOINT_ID SECOND_CHECKPOINT_ID
-taskseam --db .taskseam/state.db context TASK_ID
-taskseam --db .taskseam/state.db explain SQLITE_ITEM_ID
+taskseam record decision "Use SQLite" --source claude
+taskseam record question "How should browser capture permissions work?" --source claude
+taskseam checkpoint
+taskseam context
+taskseam status
 ```
+
+Use `--supersedes ITEM_ID` with `taskseam record` when a new item replaces an earlier item. The advanced `task`, `item`, `delta`, and `explain` commands accept explicit IDs for scripting and multi-task workflows.
 
 Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
 
-Without `--db`, TaskSeam stores data at `~/.local/share/taskseam/taskseam.db`. Set `TASKSEAM_DB` to choose another default path. A repository-local `.taskseam/` directory is ignored by this repository's Git configuration.
+Outside an initialized workspace, TaskSeam stores data at `~/.local/share/taskseam/taskseam.db`. Set `TASKSEAM_DB` or use `--db` to choose another path explicitly.
 
 ## Connect Codex with MCP
 
