@@ -63,6 +63,22 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.resolve_question(self.task, question, "Export JSON", "manual")
 
+    def test_resolution_can_supersede_existing_decision(self):
+        old = self.store.add_item(self.task, "decision", "Use SQLite", "claude")
+        question = self.store.add_item(self.task, "question", "Readable state?", "claude")
+        new = self.store.resolve_question(
+            self.task, question, "Use SQLite with Markdown export", "user", supersedes=old
+        )
+        self.assertEqual([item["id"] for item in self.store.current_items(self.task)], [new])
+
+    def test_existing_items_can_be_linked_as_supersession_correction(self):
+        old = self.store.add_item(self.task, "decision", "Use SQLite", "claude")
+        new = self.store.add_item(self.task, "decision", "Use SQLite with Markdown export", "user")
+        self.store.set_supersession(self.task, old, new)
+        self.assertEqual([item["id"] for item in self.store.current_items(self.task)], [new])
+        with self.assertRaises(ValueError):
+            self.store.set_supersession(self.task, new, old)
+
     def test_version_one_database_migrates(self):
         path = Path(self.tmp.name) / "legacy.db"
         legacy = Store(path)

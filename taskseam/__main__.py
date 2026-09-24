@@ -76,6 +76,10 @@ def parser():
     resolve.add_argument("question_id")
     resolve.add_argument("decision")
     resolve.add_argument("--source", default="manual")
+    resolve.add_argument("--supersedes", help="Existing decision replaced by the resolution")
+    supersede = commands.add_parser("supersede", help="Correctly link an old item to its replacement")
+    supersede.add_argument("old_item_id")
+    supersede.add_argument("--with", dest="new_item_id", required=True)
     return p
 
 
@@ -175,8 +179,13 @@ def main(argv=None):
                 if not workspace:
                     raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
                 result = {"item_id": store.resolve_question(active_task(workspace), args.question_id,
-                                                             args.decision, args.source),
+                                                             args.decision, args.source, args.supersedes),
                           "resolved_question": args.question_id}
+            elif args.command == "supersede":
+                if not workspace:
+                    raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
+                store.set_supersession(active_task(workspace), args.old_item_id, args.new_item_id)
+                result = {"superseded": args.old_item_id, "replacement": args.new_item_id}
             elif args.command == "checkpoint":
                 task_id = args.task_id or (active_task(workspace) if workspace else None)
                 if not task_id:

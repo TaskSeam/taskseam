@@ -13,3 +13,4 @@ All notable changes to TaskSeam will be documented here.
 - Add one-command Codex MCP configuration for initialized workspaces.
 - Add review-first conversation state packets with shared source evidence.
 - Add question resolution as an evidence-backed state transition.
+- Add human correction of supersession relationships between existing state items.

@@ -106,8 +106,11 @@ Resolve an open question into an accepted decision while preserving its history:
 ```bash
 taskseam resolve QUESTION_ID \
   "Keep SQLite canonical and export deterministic Markdown" \
-  --source codex
+  --source codex \
+  --supersedes EARLIER_DECISION_ID
 ```
+
+If two existing items were imported without their relationship, correct it with `taskseam supersede OLD_ITEM_ID --with NEW_ITEM_ID`.
 
 Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
 

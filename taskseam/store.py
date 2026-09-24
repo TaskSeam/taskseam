@@ -153,7 +153,7 @@ class Store:
         )}
         return [row for row in rows if row["id"] not in replaced and row["id"] not in resolved]
 
-    def resolve_question(self, task_id, question_id, decision, source):
+    def resolve_question(self, task_id, question_id, decision, source, supersedes=None):
         self.task(task_id)
         question = self.db.execute(
             "SELECT task_id, kind FROM items WHERE id = ?", (question_id,)
@@ -164,15 +164,51 @@ class Store:
             raise ValueError("Question has already been resolved")
         if not isinstance(decision, str) or not decision.strip():
             raise ValueError("Resolution decision cannot be empty")
+        if supersedes:
+            old = self.db.execute("SELECT task_id, kind FROM items WHERE id = ?", (supersedes,)).fetchone()
+            if old is None or old["task_id"] != task_id or old["kind"] != "decision":
+                raise ValueError("Superseded decision must exist in the active task")
+            if self.db.execute("SELECT 1 FROM items WHERE supersedes = ?", (supersedes,)).fetchone():
+                raise ValueError("Decision has already been superseded")
         event_id, item_id, created = _id(), _id(), _now()
         with self.db:
             self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
                             (event_id, task_id, source, decision.strip(), created))
             self.db.execute("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            (item_id, task_id, "decision", decision.strip(), event_id, None, created))
+                            (item_id, task_id, "decision", decision.strip(), event_id, supersedes, created))
             self.db.execute("INSERT INTO resolutions VALUES (?, ?, ?)",
                             (question_id, item_id, created))
         return item_id
+
+    def set_supersession(self, task_id, old_item_id, new_item_id):
+        self.task(task_id)
+        rows = self.db.execute(
+            "SELECT id, task_id, kind, supersedes FROM items WHERE id IN (?, ?)",
+            (old_item_id, new_item_id),
+        ).fetchall()
+        by_id = {row["id"]: row for row in rows}
+        old, new = by_id.get(old_item_id), by_id.get(new_item_id)
+        if old is None or new is None or old["task_id"] != task_id or new["task_id"] != task_id:
+            raise ValueError("Both items must exist in the active task")
+        if old_item_id == new_item_id or old["kind"] != new["kind"]:
+            raise ValueError("Supersession requires two different items of the same kind")
+        if new["supersedes"] and new["supersedes"] != old_item_id:
+            raise ValueError("New item already supersedes another item")
+        cursor = old
+        seen = set()
+        while cursor and cursor["id"] not in seen:
+            if cursor["id"] == new_item_id:
+                raise ValueError("Supersession would create a cycle")
+            seen.add(cursor["id"])
+            cursor = (self.db.execute(
+                "SELECT id, task_id, kind, supersedes FROM items WHERE id = ?", (cursor["supersedes"],)
+            ).fetchone() if cursor["supersedes"] else None)
+        if self.db.execute(
+            "SELECT 1 FROM items WHERE supersedes = ? AND id != ?", (old_item_id, new_item_id)
+        ).fetchone():
+            raise ValueError("Old item has already been superseded")
+        with self.db:
+            self.db.execute("UPDATE items SET supersedes = ? WHERE id = ?", (old_item_id, new_item_id))
 
     def explain(self, item_id):
         row = self.db.execute("""
