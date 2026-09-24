@@ -30,11 +30,13 @@ The alpha can record and compare these changes when you enter them manually, and
 
 ## Install
 
-TaskSeam requires Python 3.9 or newer. The recommended CLI installation is:
+TaskSeam requires Python 3.9 or newer. Install it from PyPI with:
 
 ```bash
-pipx install taskseam
+python3 -m pip install taskseam
 ```
+
+Because TaskSeam is a command-line application, [`pipx`](https://pipx.pypa.io/) is also a good option when you want it isolated from your other Python packages: `pipx install taskseam`.
 
 Until the first PyPI release is available, install directly from GitHub:
 
