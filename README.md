@@ -4,7 +4,7 @@
 
 TaskSeam keeps the accepted state of a project available when work moves between Codex, Claude Code, VS Code agents, ChatGPT, and Claude.
 
-[Website](https://taskseam.github.io/taskseam/) · [Quick start](docs/QUICKSTART.md) · [Demo](docs/DEMO.md) · [Integrations](docs/INTEGRATIONS.md) · [Privacy](PRIVACY.md)
+[Website](https://taskseam.github.io/taskseam/) · [Editor setup](docs/EDITOR_SETUP.md) · [Quick start](docs/QUICKSTART.md) · [Demo](docs/DEMO.md) · [Privacy](PRIVACY.md)
 
 > **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview. PyPI and extension-store distribution are being prepared.
 
@@ -29,7 +29,11 @@ cd your-project
 taskseam init
 ```
 
-Now open Codex or Claude Code in that project and work normally. TaskSeam supplies the project's accepted decisions, active constraints, unresolved questions, and changes the agent has not seen. Durable changes use the agent's normal tool-approval screen.
+Now open the project in **Codex for VS Code/Cursor**, **Claude Code for VS Code**, or their terminal interface and start a new chat. TaskSeam supplies the project's accepted decisions, active constraints, unresolved questions, and changes the agent has not seen. Durable changes use the agent's normal tool-approval screen.
+
+Start with this prompt:
+
+> Continue this project. What accepted decisions, constraints, and open questions should I know?
 
 There are no routine TaskSeam commands after initialization.
 
@@ -54,12 +58,13 @@ TaskSeam stores project state locally under `.taskseam/`, which it adds to `.git
 
 | Surface | Current experience |
 |---|---|
-| Codex CLI and IDE extension | Working alpha through MCP and the TaskSeam agent plugin |
-| Claude Code | Working alpha through MCP |
+| Codex in VS Code/Cursor and CLI | Working alpha through shared MCP configuration |
+| Claude Code in VS Code and terminal | Working alpha through user scoped MCP configuration |
 | VS Code with GitHub Copilot | Working alpha through the portable agent plugin |
 | ChatGPT and Claude websites | Developer-preview browser extension with explicit review |
+| Claude Desktop general chat | Planned desktop extension with project selection |
 
-See the [integration guide](docs/INTEGRATIONS.md) for installation details.
+See the [editor setup guide](docs/EDITOR_SETUP.md) for the exact UI steps and the [integration guide](docs/INTEGRATIONS.md) for technical details.
 
 ## Why this is different from shared memory
 

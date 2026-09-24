@@ -57,6 +57,7 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 - [ ] Filter by target, purpose, permissions, and token budget
 - [ ] Deliver the result through MCP
 - [ ] Preview and approve sensitive handoffs
+- [ ] Package a Claude Desktop extension with explicit project selection
 
 ## Milestone 5: Evaluation and public alpha
 

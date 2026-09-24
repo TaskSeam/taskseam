@@ -12,7 +12,7 @@ git init
 taskseam init
 ```
 
-These are one-time setup commands. Install the TaskSeam agent plugin as described in the [integration guide](INTEGRATIONS.md), then start a new agent session in this directory.
+These are one-time setup commands. Open this directory in the Codex or Claude Code editor interface, then start a new agent chat. The optional plugin setup for GitHub Copilot is described in the [editor setup guide](EDITOR_SETUP.md).
 
 ## Accept a decision in the first agent
 

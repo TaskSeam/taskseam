@@ -2,13 +2,13 @@
 
 Choose the AI surface you use. Every integration writes to the same local TaskSeam state model.
 
-## Codex CLI or Codex IDE extension
+## Codex IDE extension or CLI
 
 ```bash
 taskseam setup codex
 ```
 
-Codex CLI and the Codex IDE extension share their MCP configuration. The optional TaskSeam agent plugin also supplies continuity behavior:
+Codex CLI and the Codex IDE extension for VS Code or Cursor share their MCP configuration. After setup, restart the editor, open an initialized project, and start a new Codex chat. The optional TaskSeam agent plugin also supplies continuity behavior:
 
 ```bash
 codex plugin marketplace add TaskSeam/taskseam
@@ -17,13 +17,13 @@ codex plugin add taskseam@taskseam
 
 Start a new Codex session after installing the plugin.
 
-## Claude Code
+## Claude Code extension or terminal
 
 ```bash
 taskseam setup claude-code
 ```
 
-Start a new Claude Code session inside an initialized TaskSeam project.
+Restart VS Code after setup. Open an initialized TaskSeam project and start a new chat from the Claude Code panel, or run Claude Code in that project's terminal.
 
 ## Visual Studio Code with GitHub Copilot
 
@@ -38,3 +38,9 @@ Start a new Claude Code session inside an initialized TaskSeam project.
 The browser extension is an unpacked developer preview and has not been published to the Chrome Web Store. Its development setup is documented separately in [`browser-extension/README.md`](../browser-extension/README.md) so the normal onboarding remains focused on supported agent integrations.
 
 Other AI clients require local MCP support or a dedicated TaskSeam adapter. They are not presented as supported until their complete flow has been tested.
+
+## Claude Desktop general chat
+
+Claude Desktop uses a separate desktop-extension system and does not automatically inherit Claude Code's project working directory. TaskSeam does not currently present it as supported. A packaged desktop extension with an explicit project selector is planned.
+
+See the [editor setup guide](EDITOR_SETUP.md) for the complete interface matrix.

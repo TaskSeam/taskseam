@@ -1,6 +1,6 @@
 # TaskSeam onboarding
 
-This guide sets up local task continuity for Codex or Claude Code.
+This guide sets up local task continuity for Codex or Claude Code in VS Code, Cursor, or the terminal.
 
 ## 1. Install
 
@@ -37,7 +37,13 @@ TaskSeam names the initial task after the project directory, creates `.taskseam/
 
 ## 4. Work normally
 
-Start Codex or Claude Code inside the project. The TaskSeam agent plugin can retrieve unseen task state and propose saving an explicitly accepted decision, constraint, or unresolved question through the host's tool approval screen.
+Open the initialized project in the Codex or Claude Code editor interface and start a new chat. You can also start either agent from the project terminal.
+
+Ask:
+
+> Continue this project. What accepted decisions, constraints, and open questions should I know?
+
+TaskSeam can retrieve unseen task state and propose saving an explicitly accepted decision, constraint, or unresolved question through the host's tool approval screen.
 
 Speak to the agent normally. When a conclusion becomes durable, approve or reject the TaskSeam action proposed by the agent.
 
@@ -48,4 +54,4 @@ Speak to the agent normally. When a conclusion becomes durable, approve or rejec
 - Agent write tools use the host's approval flow.
 - Web conversation capture requires a deliberate extension action and review.
 
-Continue with the [demo](DEMO.md) or choose another tool in the [integration guide](INTEGRATIONS.md).
+Continue with the [editor setup guide](EDITOR_SETUP.md), the [demo](DEMO.md), or the [integration guide](INTEGRATIONS.md).
