@@ -64,8 +64,9 @@ def parser():
     record.add_argument("body")
     record.add_argument("--source", default="manual")
     record.add_argument("--supersedes")
-    setup = commands.add_parser("setup", help="Configure an AI tool to use TaskSeam")
-    setup.add_argument("tool", choices=("codex",))
+    setup = commands.add_parser("setup", help="Auto-detect and configure supported AI tools")
+    setup.add_argument("tool", nargs="?", choices=("codex", "claude-code"),
+                       help="Configure one tool; omit to configure every detected tool")
     setup.add_argument("--dry-run", action="store_true")
     commands.add_parser("prompt", help="Print the prompt for creating an import packet")
     import_command = commands.add_parser("import", help="Preview or apply a TaskSeam state packet")
@@ -121,10 +122,13 @@ def main(argv=None):
             finally:
                 store.close()
         if args.command == "setup":
-            from .setup import setup_codex
-            if not workspace:
-                raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
-            result = setup_codex(sys.executable, args.dry_run)
+            from .setup import setup_claude, setup_codex, setup_detected
+            if args.tool == "codex":
+                result = setup_codex(sys.executable, args.dry_run)
+            elif args.tool == "claude-code":
+                result = setup_claude(sys.executable, args.dry_run)
+            else:
+                result = setup_detected(sys.executable, args.dry_run)
             print(json.dumps(result, indent=2))
             return 0
         if args.command == "import":

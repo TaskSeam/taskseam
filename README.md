@@ -18,7 +18,7 @@ TaskSeam is built around four questions:
 3. What changed since this particular tool last participated?
 4. What evidence supports every item delivered?
 
-> **Alpha status:** `0.1.0` provides the local CLI, SQLite state model, checkpoints, deltas, localhost API, and read-only MCP delivery. Task matching, automatic extraction, browser capture, and correction UX are still under development. The current release is the foundation, not the completed vision.
+> **Alpha status:** `0.1.0` provides the local CLI, SQLite state model, checkpoints, deltas, localhost API, and MCP delivery. Task matching, automatic extraction, browser capture, and correction UX are still under development. The current release is the foundation, not the completed vision.
 
 ## The problem
 
@@ -85,7 +85,7 @@ Initialize TaskSeam in a repository:
 ```bash
 cd my-project
 taskseam init "Build capture prototype"
-taskseam setup codex
+taskseam setup
 taskseam prompt
 ```
 
@@ -135,18 +135,19 @@ All imported items link to the original packet as evidence. This reviewed import
 
 Outside an initialized workspace, TaskSeam stores data at `~/.local/share/taskseam/taskseam.db`. Set `TASKSEAM_DB` or use `--db` to choose another path explicitly.
 
-## Connect Codex with MCP
+## Connect agents with one setup command
 
-TaskSeam exposes read-only MCP tools for listing tasks, reading current context, comparing checkpoints, and explaining an item's source.
+TaskSeam exposes MCP tools for listing tasks, reading current context, comparing checkpoints, explaining evidence, and delivering the changes an agent has not seen yet.
 
-From an initialized TaskSeam workspace, configure Codex automatically:
+Run this once from any directory to auto-detect and configure supported local agents:
 
 ```bash
-taskseam setup codex
-codex mcp list
+taskseam setup
 ```
 
-The setup command registers TaskSeam's stdio MCP server. It discovers the active workspace when Codex launches it, so the same configuration works across initialized repositories. The Codex CLI and IDE extension share MCP configuration, as described in the [official OpenAI MCP setup documentation](https://developers.openai.com/learn/docs-mcp).
+Today this configures Codex and Claude Code when their CLIs are installed. Use `taskseam setup codex` or `taskseam setup claude-code` to configure only one. The stdio MCP server discovers the active workspace when an agent launches it, so the same user-level configuration works across initialized repositories. Codex CLI and its IDE extension share MCP configuration, as described in the [official OpenAI MCP setup documentation](https://developers.openai.com/learn/docs-mcp). Claude Code supports the same local stdio MCP pattern through its [official MCP integration](https://docs.anthropic.com/en/docs/claude-code/mcp).
+
+Claude.ai and ChatGPT web sessions cannot start this local stdio process. For now, use `taskseam prompt` and reviewed import with those sites. A permissioned browser extension is planned so users can send accepted task state without copying JSON.
 
 Advanced users can still register a fixed database manually:
 
