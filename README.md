@@ -1,10 +1,21 @@
 # TaskSeam
 
-**Switch AI. Keep working.**
+**Switch AI coding agents without restarting the conversation.**
 
-TaskSeam keeps the accepted state of a project available when work moves between Codex, Claude Code, VS Code agents, ChatGPT, and Claude.
+TaskSeam carries accepted decisions, active constraints, and unresolved questions between Codex, Claude Code, and VS Code agents. Each project stays local, and each agent receives only the changes it has not seen.
 
-[Website](https://taskseam.github.io/taskseam/) · [Editor setup](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) · [Quick start](https://github.com/TaskSeam/taskseam/blob/main/docs/QUICKSTART.md) · [Demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) · [Privacy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md)
+[Website](https://taskseam.github.io/taskseam/) · [Why TaskSeam](https://github.com/TaskSeam/taskseam/blob/main/docs/WHY_TASKSEAM.md) · [Editor setup](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) · [Demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) · [Privacy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md)
+
+```mermaid
+flowchart LR
+    A["Claude Code<br/>Accept a decision"] --> T["TaskSeam<br/>Current project state"]
+    T --> B["Codex<br/>Continue with the decision"]
+    B --> C["Codex<br/>Add a constraint"]
+    C --> T
+    T --> D["Claude Code<br/>Receive only what changed"]
+```
+
+**Local SQLite · Open source · MCP compatible · No hosted account**
 
 > **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview.
 
