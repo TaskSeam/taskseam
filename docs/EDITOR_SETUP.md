@@ -11,6 +11,8 @@ pipx install taskseam
 taskseam setup
 ```
 
+If you do not use `pipx`, install with `python3 -m pip install taskseam` instead.
+
 Run this once in every project that should have its own TaskSeam state:
 
 ```bash

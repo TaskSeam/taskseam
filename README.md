@@ -10,10 +10,16 @@ TaskSeam keeps the accepted state of a project available when work moves between
 
 ## Quick start
 
-Install TaskSeam:
+Install TaskSeam as an isolated command-line application:
 
 ```bash
 pipx install taskseam
+```
+
+Standard pip installation also works:
+
+```bash
+python3 -m pip install taskseam
 ```
 
 Connect the supported agents installed on your computer:

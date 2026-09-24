@@ -8,6 +8,12 @@ This guide sets up local task continuity for Codex or Claude Code in VS Code, Cu
 pipx install taskseam
 ```
 
+`pipx` keeps command-line applications isolated. Standard installation also works:
+
+```bash
+python3 -m pip install taskseam
+```
+
 Confirm the command is available:
 
 ```bash
