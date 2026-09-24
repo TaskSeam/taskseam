@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TaskSeam Capture</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <h1>TaskSeam</h1>
+    <p class="muted">Review accepted state before saving it locally.</p>
+    <label>Pairing token<input id="token" type="password" autocomplete="off" placeholder="From taskseam serve"></label>
+    <button id="connect" class="secondary">Check connection</button>
+    <button id="read">Read latest AI response</button>
+    <section id="review" hidden>
+      <h2>Review items</h2>
+      <div id="items"></div>
+      <button id="save">Save approved items</button>
+    </section>
+    <p id="status" role="status"></p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

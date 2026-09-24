@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from .store import Store
-from .workspace import active_task, database_path, find_workspace, initialize
+from .workspace import active_task, browser_token, database_path, find_workspace, initialize
 
 
 def default_db():
@@ -153,7 +153,12 @@ def main(argv=None):
                 store.close()
         if args.command == "serve":
             from .api import serve
-            serve(args.db, args.host, args.port)
+            if not workspace:
+                raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
+            task_id = active_task(workspace)
+            token = browser_token(workspace)
+            print("Browser pairing token: " + token, flush=True)
+            serve(args.db, args.host, args.port, token, task_id)
             return 0
         if args.command == "mcp":
             from .mcp import run

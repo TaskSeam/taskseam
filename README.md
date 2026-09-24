@@ -176,7 +176,19 @@ To install the plugin for Copilot:
 
 You can inspect or disable it from the **Agent Plugins - Installed** section of the Extensions view. VS Code documents portable plugin installation and controls in its [Agent plugins guide](https://code.visualstudio.com/docs/agent-customization/agent-plugins).
 
-Claude.ai and ChatGPT web sessions cannot start this local stdio process. For now, use `taskseam prompt` and reviewed import with those sites. A permissioned browser extension is planned so users can send accepted task state without copying JSON.
+Claude.ai and ChatGPT web sessions cannot start a local stdio process. The alpha browser extension under `browser-extension/` connects them to TaskSeam through an authenticated localhost bridge.
+
+### ChatGPT and Claude browser capture
+
+Run the bridge from the initialized project whose active task should receive the capture:
+
+```bash
+taskseam serve
+```
+
+TaskSeam prints a workspace-specific pairing token. For local testing, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select the repository's `browser-extension` directory. Open the extension on `chatgpt.com` or `claude.ai`, enter the token once, and select **Read latest AI response**.
+
+The latest assistant response must contain the JSON produced from `taskseam prompt`. The extension shows every detected item for editing or removal before anything is saved. It does not capture pages in the background. Chrome Web Store packaging and more resilient site adapters remain release work.
 
 Advanced users can still register a fixed database manually:
 
@@ -193,11 +205,13 @@ taskseam serve
 curl http://127.0.0.1:8765/health
 ```
 
-The API only accepts localhost bind addresses. It has no authentication and must not be exposed through a public interface, tunnel, or proxy.
+The API only accepts localhost bind addresses and browser writes require the workspace pairing token. Do not expose it through a public interface, tunnel, or proxy.
 
 Available endpoints:
 
 - `GET /health`
+- `GET /v1/active`
+- `POST /v1/active/import`
 - `GET|POST /v1/tasks`
 - `GET /v1/tasks/{task_id}/context`
 - `POST /v1/tasks/{task_id}/items`

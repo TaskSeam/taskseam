@@ -1,6 +1,7 @@
 """Repository-local TaskSeam workspace configuration."""
 
 import json
+import secrets
 from pathlib import Path
 
 
@@ -32,6 +33,7 @@ def initialize(directory, title, create_task):
         "project": root.name,
         "active_task": task_id,
         "database": "state.db",
+        "browser_token": secrets.token_urlsafe(24),
     }
     config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
     _ensure_ignored(root)
@@ -48,6 +50,19 @@ def active_task(workspace):
     if not task_id:
         raise ValueError("Workspace has no active task")
     return task_id
+
+
+def browser_token(workspace):
+    """Return a workspace bridge token, adding one to older workspaces."""
+    root, config = workspace
+    token = config.get("browser_token")
+    if token:
+        return token
+    token = secrets.token_urlsafe(24)
+    config["browser_token"] = token
+    (root / ".taskseam" / "config.json").write_text(
+        json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    return token
 
 
 def _ensure_ignored(root):

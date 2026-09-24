@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "TaskSeam Capture",
+  "version": "0.1.0",
+  "description": "Review and save accepted task state from ChatGPT and Claude to local TaskSeam.",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "action": {
+    "default_title": "Send accepted state to TaskSeam",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*", "https://claude.ai/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

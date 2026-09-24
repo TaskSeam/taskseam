@@ -1,0 +1,18 @@
+:root { color-scheme: light dark; font: 14px/1.4 system-ui, sans-serif; }
+body { margin: 0; min-width: 360px; }
+main { padding: 16px; }
+h1 { font-size: 20px; margin: 0; }
+h2 { font-size: 15px; margin: 16px 0 8px; }
+.muted { color: #777; margin: 4px 0 14px; }
+label { display: grid; gap: 5px; font-weight: 600; }
+input, textarea, select, button { box-sizing: border-box; font: inherit; width: 100%; }
+input, textarea, select { border: 1px solid #9996; border-radius: 6px; padding: 8px; }
+button { background: #1667d9; border: 0; border-radius: 6px; color: white; cursor: pointer; margin-top: 9px; padding: 9px; }
+button.secondary { background: #59636e; }
+.item { border: 1px solid #9995; border-radius: 8px; display: grid; gap: 7px; margin-bottom: 8px; padding: 9px; }
+.item header { display: flex; gap: 8px; }
+.item header input { width: auto; }
+textarea { min-height: 64px; resize: vertical; }
+#status { min-height: 20px; margin-bottom: 0; }
+.error { color: #c52d2d; }
+.success { color: #198754; }
