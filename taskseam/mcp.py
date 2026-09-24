@@ -7,6 +7,17 @@ from . import __version__
 from .store import Store
 
 
+SERVER_INSTRUCTIONS = """Use TaskSeam for continuity when an active workspace task is available.
+At the start of relevant project work, call taskseam_continue once with a stable lowercase target
+for this agent. Use the returned state as evidence and do not invent missing context. During normal
+work, call taskseam_record only for a decision the user explicitly accepts, an active constraint,
+or a material unresolved question. Never store brainstorming, unaccepted recommendations, secrets,
+or unrelated personal context. Use taskseam_resolve when the user explicitly answers a stored
+question. Keep durable items concise and self-contained, preserve supersession links, and use the
+host's normal approval flow for writes. Do not ask the user to run TaskSeam CLI record commands when
+an MCP write tool can complete the operation."""
+
+
 TOOLS = [
     {"name": "taskseam_list_tasks", "description": "List local TaskSeam tasks",
      "inputSchema": {"type": "object", "properties": {}},
@@ -65,6 +76,7 @@ def handle(store, request, active_task_id=None):
             "protocolVersion": "2025-06-18",
             "capabilities": {"tools": {"listChanged": False}},
             "serverInfo": {"name": "taskseam", "version": __version__},
+            "instructions": SERVER_INSTRUCTIONS,
         })
     if method == "ping":
         return _result(request_id, {})

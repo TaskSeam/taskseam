@@ -19,6 +19,7 @@ class McpTests(unittest.TestCase):
     def test_initialize_and_tools(self):
         initialized = handle(self.store, {"jsonrpc": "2.0", "id": 1, "method": "initialize"})
         self.assertEqual(initialized["result"]["serverInfo"]["name"], "taskseam")
+        self.assertIn("explicitly accepts", initialized["result"]["instructions"])
         listed = handle(self.store, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
         self.assertEqual(listed["result"]["tools"], TOOLS)
 

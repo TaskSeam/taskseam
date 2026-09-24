@@ -35,6 +35,8 @@ taskseam init "Describe the work you want to continue"
 
 Start a new agent session in that project. TaskSeam can deliver current task state, remember only conclusions you explicitly accept, and send that agent only later changes on its next visit.
 
+After these setup commands, work through normal conversation. You should not need to run `taskseam record`, create checkpoints, copy item IDs, or request handoffs manually. Those commands remain available for inspection, scripting, correction, and clients that do not support MCP writes. TaskSeam's MCP server tells compatible agents to retrieve unseen state and propose recording only decisions you explicitly accept, active constraints, and unresolved questions through the host's approval flow.
+
 For a guided proof using two AI tools, follow the [end-to-end demo](docs/DEMO.md). For setup by tool, see the [integration guide](docs/INTEGRATIONS.md).
 
 ### What is available today?
@@ -108,9 +110,9 @@ python3 -m pip install -e .
 
 After installation, use the [onboarding guide](docs/QUICKSTART.md) for the shortest setup.
 
-## Record task state
+## Manual and advanced state commands
 
-Initialize TaskSeam in a repository:
+Initialize TaskSeam in a repository if you have not already followed the quick start:
 
 ```bash
 cd my-project
