@@ -16,4 +16,4 @@ Please keep changes small, add tests for behavior that can fail, and run the ful
 
 ## Scope
 
-The current milestone covers local storage, explicit state changes, checkpoints, provenance, a localhost API, and read-only MCP delivery. Discuss broad architecture changes in an issue before implementing them.
+The current milestone covers local project state, explicit state changes, provenance, per-agent continuation, an authenticated localhost API, and MCP read/write tools. Discuss broad architecture changes in an issue before implementing them.

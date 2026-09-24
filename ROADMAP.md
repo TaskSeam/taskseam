@@ -28,7 +28,7 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 - [x] Checkpoints and deltas
 - [x] Source-event provenance
 - [x] Localhost API
-- [x] Read-only MCP delivery
+- [x] MCP delivery with approved state updates
 - [ ] Schema migrations with compatibility tests
 - [ ] Export and deletion commands
 

@@ -74,4 +74,4 @@ def setup_detected(python_executable=None, dry_run=False):
         result = installer(python_executable, dry_run)
         detected.append({"tool": name, **result})
     return {"configured": detected, "skipped": skipped,
-            "web_assistants": "Use 'taskseam prompt' and reviewed import until the browser extension is available"}
+            "web_assistants": "ChatGPT and Claude web support is available as a developer-preview browser extension"}

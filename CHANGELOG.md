@@ -8,7 +8,7 @@ All notable changes to TaskSeam will be documented here.
 - Add provenance lookup for decisions, constraints, and questions.
 - Add the `taskseam` command-line interface.
 - Add a localhost-only JSON API for local integrations.
-- Add a read-only MCP server for listing tasks, reading context and deltas, and explaining evidence.
+- Add an MCP server for task context, evidence, continuation, and approved state updates.
 - Add repository initialization, workspace discovery, active-task recording, and status commands.
 - Add one-command Codex MCP configuration for initialized workspaces.
 - Add review-first conversation state packets with shared source evidence.

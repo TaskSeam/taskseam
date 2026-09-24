@@ -39,13 +39,7 @@ TaskSeam names the initial task after the project directory, creates `.taskseam/
 
 Start Codex or Claude Code inside the project. The TaskSeam agent plugin can retrieve unseen task state and propose saving an explicitly accepted decision, constraint, or unresolved question through the host's tool approval screen.
 
-You do not need to run `taskseam record`, manage checkpoints, or copy IDs during normal use. Those commands are advanced controls and fallbacks. Speak to the agent normally; when a conclusion becomes durable, approve or reject the TaskSeam write proposed by the agent.
-
-Useful inspection command:
-
-```bash
-taskseam context
-```
+Speak to the agent normally. When a conclusion becomes durable, approve or reject the TaskSeam action proposed by the agent.
 
 ## Expected privacy behavior
 

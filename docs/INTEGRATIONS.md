@@ -35,23 +35,6 @@ Start a new Claude Code session inside an initialized TaskSeam project.
 
 ## ChatGPT or Claude website
 
-The browser extension is currently an unpacked developer preview and has not been published to the Chrome Web Store.
+The browser extension is an unpacked developer preview and has not been published to the Chrome Web Store. Its development setup is documented separately in [`browser-extension/README.md`](../browser-extension/README.md) so the normal onboarding remains focused on supported agent integrations.
 
-```bash
-cd your-project
-taskseam serve
-```
-
-Keep the bridge running, load `browser-extension/` from `chrome://extensions`, and pair it using the displayed workspace token. The latest assistant response must contain a packet produced using `taskseam prompt`. Review all detected items before saving.
-
-## Unsupported or unavailable integration
-
-The CLI remains a fallback for any tool:
-
-```bash
-taskseam prompt
-taskseam import packet.json --source your-tool
-taskseam import packet.json --source your-tool --apply
-```
-
-Preview is always the default. The final command applies only the reviewed packet.
+Other AI clients require local MCP support or a dedicated TaskSeam adapter. They are not presented as supported until their complete flow has been tested.

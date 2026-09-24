@@ -6,9 +6,9 @@ TaskSeam is local-first open-source software. This policy describes the TaskSeam
 
 ## Data TaskSeam handles
 
-TaskSeam can store task titles, accepted decisions, active constraints, unresolved questions, checkpoints, source labels, and source evidence that a user chooses to record.
+TaskSeam can store task titles, accepted decisions, active constraints, unresolved questions, continuity state, source labels, and supporting evidence that a user chooses to save.
 
-The browser extension can read the latest visible assistant response on a supported ChatGPT or Claude page after the user selects **Read latest AI response**. It parses a TaskSeam packet and presents every item for review. Nothing is saved until the user selects **Save approved items**.
+The browser extension can read the latest visible assistant response on a supported ChatGPT or Claude page after the user selects **Read latest AI response**. It presents detected project changes for review. Nothing is saved until the user selects **Save approved items**.
 
 ## Storage and transmission
 
