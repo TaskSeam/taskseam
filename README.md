@@ -6,14 +6,14 @@ TaskSeam keeps the accepted state of a project available when work moves between
 
 [Website](https://taskseam.github.io/taskseam/) · [Editor setup](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) · [Quick start](https://github.com/TaskSeam/taskseam/blob/main/docs/QUICKSTART.md) · [Demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) · [Privacy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md)
 
-> **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview. PyPI and extension-store distribution are being prepared.
+> **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview.
 
 ## Quick start
 
 Install TaskSeam:
 
 ```bash
-pipx install git+https://github.com/TaskSeam/taskseam.git
+pipx install taskseam
 ```
 
 Connect the supported agents installed on your computer:

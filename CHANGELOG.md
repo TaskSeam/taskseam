@@ -2,6 +2,12 @@
 
 All notable changes to TaskSeam will be documented here.
 
+## 0.1.1 - 2026-09-24
+
+- Use the public PyPI installation command throughout the onboarding experience.
+- Align package authorship, project descriptions, and search metadata.
+- Add editor-first setup guidance for Codex and Claude Code.
+
 ## 0.1.0 - 2026-09-23
 
 - Add local SQLite task, event, state item, checkpoint, and delta storage.

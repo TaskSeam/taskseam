@@ -4,10 +4,8 @@ This guide sets up local task continuity for Codex or Claude Code in VS Code, Cu
 
 ## 1. Install
 
-Until the first PyPI release:
-
 ```bash
-pipx install git+https://github.com/TaskSeam/taskseam.git
+pipx install taskseam
 ```
 
 Confirm the command is available:

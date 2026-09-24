@@ -7,7 +7,7 @@ TaskSeam works inside supported editor agents. You do not need to operate TaskSe
 Install TaskSeam and connect the agents already installed on your computer:
 
 ```bash
-pipx install git+https://github.com/TaskSeam/taskseam.git
+pipx install taskseam
 taskseam setup
 ```
 
