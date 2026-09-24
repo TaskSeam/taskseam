@@ -30,10 +30,10 @@ TaskSeam detects Codex and Claude Code on `PATH` and configures the tools it fin
 
 ```bash
 cd your-project
-taskseam init "Implement account settings"
+taskseam init
 ```
 
-TaskSeam creates `.taskseam/` with a local SQLite database and adds that directory to `.gitignore`.
+TaskSeam names the initial task after the project directory, creates `.taskseam/` with a local SQLite database, and adds that directory to `.gitignore`.
 
 ## 4. Work normally
 

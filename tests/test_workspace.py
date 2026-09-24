@@ -49,7 +49,10 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_duplicate_init_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
-            self.run_cli(directory, "init")
+            initialized = json.loads(self.run_cli(directory, "init").stdout)
+            status = json.loads(self.run_cli(directory, "status").stdout)
+            self.assertEqual(status["active_task"]["task"]["title"], Path(directory).name)
+            self.assertIn("active_task", initialized)
             result = self.run_cli(directory, "init", check=False)
             self.assertEqual(result.returncode, 1)
             self.assertIn("already initialized", result.stderr)

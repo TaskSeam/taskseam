@@ -30,7 +30,7 @@ The shortest working path uses Codex or Claude Code. These are one-time setup co
 pipx install git+https://github.com/TaskSeam/taskseam.git
 taskseam setup
 cd your-project
-taskseam init "Describe the work you want to continue"
+taskseam init
 ```
 
 Start a new agent session in that project. TaskSeam can deliver current task state, remember only conclusions you explicitly accept, and send that agent only later changes on its next visit.
@@ -110,62 +110,9 @@ python3 -m pip install -e .
 
 After installation, use the [onboarding guide](docs/QUICKSTART.md) for the shortest setup.
 
-## Manual and advanced state commands
+## Inspect or automate state
 
-Initialize TaskSeam in a repository if you have not already followed the quick start:
-
-```bash
-cd my-project
-taskseam init "Build capture prototype"
-taskseam setup
-taskseam prompt
-```
-
-This creates private repository-local storage, an active task, and a `.taskseam/` Git ignore rule. Normal commands discover the workspace from the current directory or any directory beneath it.
-
-```bash
-taskseam record decision "Use SQLite" --source claude
-taskseam record question "How should browser capture permissions work?" --source claude
-taskseam checkpoint
-taskseam context
-taskseam status
-taskseam handoff --to codex
-```
-
-Use `--supersedes ITEM_ID` with `taskseam record` when a new item replaces an earlier item. The advanced `task`, `item`, `delta`, and `explain` commands accept explicit IDs for scripting and multi-task workflows.
-
-Resolve an open question into an accepted decision while preserving its history:
-
-```bash
-taskseam resolve QUESTION_ID \
-  "Keep SQLite canonical and export deterministic Markdown" \
-  --source codex \
-  --supersedes EARLIER_DECISION_ID
-```
-
-If two existing items were imported without their relationship, correct it with `taskseam supersede OLD_ITEM_ID --with NEW_ITEM_ID`.
-
-`taskseam handoff --to codex` returns the current state on first delivery and only the checkpoint delta on later deliveries. Each target has an independent delivery checkpoint. The equivalent `taskseam_continue` MCP tool performs the same operation and marks the returned changes as delivered.
-
-Output is JSON. CLI source names are labels entered by the caller. Browser imports retain the reviewed assistant response as local evidence.
-
-## Import reviewed state from a conversation
-
-Run `taskseam prompt` and send its output at the end of a ChatGPT or Claude conversation. Save the returned JSON as `taskseam-packet.json`, then preview it:
-
-```bash
-taskseam import taskseam-packet.json --source claude-web
-```
-
-Nothing is stored during preview. After checking that proposals were not presented as accepted decisions and that sensitive context is absent, apply the packet:
-
-```bash
-taskseam import taskseam-packet.json --source claude-web --apply
-```
-
-All imported items link to the original packet as evidence. This reviewed import is an interim bridge for web assistants; automatic permissioned capture and extraction remain roadmap work.
-
-Outside an initialized workspace, TaskSeam stores data at `~/.local/share/taskseam/taskseam.db`. Set `TASKSEAM_DB` or use `--db` to choose another path explicitly.
+Normal users work through their agent after initialization. `taskseam context` shows the current local state when inspection is useful. Recording, resolving, importing, checkpoint, delta, and explicit-ID commands are documented separately in the [CLI reference](docs/CLI.md) for scripting, correction, and unsupported clients.
 
 ## Connect agents with one setup command
 

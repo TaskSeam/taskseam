@@ -5,11 +5,11 @@ This demonstration proves that one agent can save accepted task state and anothe
 ## Prepare a clean project
 
 ```bash
+taskseam setup
 mkdir taskseam-demo
 cd taskseam-demo
 git init
-taskseam init "Choose storage for a local-first application"
-taskseam setup
+taskseam init
 ```
 
 These are one-time setup commands. Install the TaskSeam agent plugin as described in the [integration guide](INTEGRATIONS.md), then start a new agent session in this directory.
@@ -58,7 +58,7 @@ taskseam context
 
 This output should show the accepted decision and constraint with their sources. The demo works for any task title and state; the storage topic is example data rather than application logic.
 
-If an agent does not support MCP writes, use the CLI commands documented under **Manual and advanced state commands** in the main README.
+If an agent does not support MCP writes, use the commands in the [CLI reference](CLI.md).
 
 ## Optional browser capture
 

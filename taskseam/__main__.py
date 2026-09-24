@@ -91,7 +91,7 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         if args.command == "init":
-            title = args.title or "Continue work in " + Path.cwd().name
+            title = args.title or Path.cwd().name
 
             def create_task(path, task_title):
                 store = Store(path)
