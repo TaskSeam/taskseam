@@ -1,8 +1,10 @@
-# TaskSeam
+# 🧵 TaskSeam
 
-**Switch AI coding agents without restarting the conversation.**
+## **Switch AI. Keep working.**
 
-TaskSeam carries accepted decisions, active constraints, and unresolved questions between Codex, Claude Code, and VS Code agents. Each project stays local, and each agent receives only the changes it has not seen.
+*Local-first task continuity across independent AI coding agents.*
+
+TaskSeam carries accepted decisions, active constraints, and unresolved questions between Codex, Claude Code, and VS Code agents. Each project stays local, and each connected agent receives only the changes it has not seen.
 
 [Website](https://taskseam.github.io/taskseam/) · [Why TaskSeam](https://github.com/TaskSeam/taskseam/blob/main/docs/WHY_TASKSEAM.md) · [Editor setup](https://github.com/TaskSeam/taskseam/blob/main/docs/EDITOR_SETUP.md) · [Demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.md) · [Privacy](https://github.com/TaskSeam/taskseam/blob/main/PRIVACY.md)
 
@@ -18,6 +20,16 @@ flowchart LR
 **Local SQLite · Open source · MCP compatible · No hosted account**
 
 > **Public alpha:** The local CLI, MCP server, agent plugin, project state, provenance, and per-agent continuation are working. The browser extension is a developer preview.
+
+## The problem: context rot
+
+Switching AI tools often means reconstructing the task instead of continuing it:
+
+1. Re-explain the project and its current direction.
+2. Paste long chat histories that consume the next agent's context window.
+3. Correct suggestions that conflict with decisions or constraints established elsewhere.
+
+TaskSeam stores the current task state under the project's `.taskseam/` directory. It shares concise, source-linked state through MCP instead of copying entire conversations between tools.
 
 ## Quick start
 
