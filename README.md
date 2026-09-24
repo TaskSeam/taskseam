@@ -159,6 +159,23 @@ codex plugin marketplace add TaskSeam/taskseam
 
 Start a new agent session after installation. The Python package must also be installed so the plugin can run the local `taskseam mcp` command. MCP write tools use the host's approval UI before recording durable state.
 
+### Visual Studio Code
+
+TaskSeam supports both common agent paths in VS Code:
+
+- **Codex extension:** run `taskseam setup` once. Codex CLI and the Codex IDE extension share MCP configuration.
+- **GitHub Copilot Agent mode:** TaskSeam's portable Agent Plugin supplies both the continuity skill and MCP server.
+
+To install the plugin for Copilot:
+
+1. Confirm `taskseam version` works in VS Code's integrated terminal.
+2. Enable the `chat.plugins.enabled` VS Code setting.
+3. Run **Chat: Install Plugin From Source** from the Command Palette.
+4. Enter `https://github.com/TaskSeam/taskseam` and approve the repository trust prompt.
+5. Start a new Agent mode chat inside a repository initialized with `taskseam init`.
+
+You can inspect or disable it from the **Agent Plugins - Installed** section of the Extensions view. VS Code documents portable plugin installation and controls in its [Agent plugins guide](https://code.visualstudio.com/docs/agent-customization/agent-plugins).
+
 Claude.ai and ChatGPT web sessions cannot start this local stdio process. For now, use `taskseam prompt` and reviewed import with those sites. A permissioned browser extension is planned so users can send accepted task state without copying JSON.
 
 Advanced users can still register a fixed database manually:
