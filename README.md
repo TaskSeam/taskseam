@@ -2,15 +2,41 @@
 
 **Switch AI. Keep working.**
 
-TaskSeam carries the state of your work between AI tools. When a task moves from ChatGPT to Claude to Codex, the next assistant should understand the current goal, accepted decisions, open questions, and relevant evidence without asking you to reconstruct the story.
+TaskSeam is being built as a **local-first, versioned task-state layer** for work that crosses AI tools. Its goal is to reconstruct the current state of a task, record how that state changed, and give each assistant only the delta it has not seen—with source evidence for every item.
 
-TaskSeam `0.1.0` is an alpha release. Its local CLI, SQLite store, localhost API, and read-only MCP server work today. Browser capture and automatic state extraction have not been built yet.
+```text
+ChatGPT discussion ─┐
+Claude decision ────┼─> task identity ─> versioned state ─> per-tool delta ─> Codex
+Git/code changes ───┘        │                 │                 │
+                         confidence       provenance       permission scope
+```
+
+TaskSeam is built around four questions:
+
+1. Which activity belongs to the task being continued?
+2. What is currently accepted, open, completed, or superseded?
+3. What changed since this particular tool last participated?
+4. What evidence supports every item delivered?
+
+> **Alpha status:** `0.1.0` provides the local CLI, SQLite state model, checkpoints, deltas, localhost API, and read-only MCP delivery. Task matching, automatic extraction, browser capture, and correction UX are still under development. The current release is the foundation, not the completed vision.
 
 ## The problem
 
 A real task rarely fits in one conversation. You might explore an idea in ChatGPT, change the design in Claude, and implement it in Codex. Each tool sees only part of the work. Copying a transcript is tedious, and a summary can miss the decision that changed yesterday.
 
-TaskSeam keeps track of the *task* across those conversations and gives each assistant the context it needs to continue.
+TaskSeam treats the *task* as the durable object. Conversations, agent sessions, commits, and files are evidence about that task.
+
+## How this differs from shared memory
+
+Shared memory and session-handoff projects already solve useful parts of cross-agent continuity. TaskSeam is pursuing a different output: the **current, versioned state of work and the change since a specific collaborator last saw it**.
+
+| Approach | Primary output | Typical question |
+|---|---|---|
+| Shared memory | Retrieved facts or notes | “What might be relevant?” |
+| Session handoff | A point-in-time summary or transcript | “What happened in that session?” |
+| TaskSeam | Current task state plus a checkpoint delta and evidence | “What changed, what is authoritative now, and why?” |
+
+The distinction only matters if TaskSeam can reliably identify tasks, separate proposals from decisions, preserve unresolved questions, represent supersession, exclude unrelated context, and explain its result. These are release criteria rather than marketing claims. See [ROADMAP.md](ROADMAP.md).
 
 ## What a handoff looks like
 
@@ -117,7 +143,7 @@ Available endpoints:
 - `POST /v1/delta`
 - `GET /v1/items/{item_id}`
 
-## How TaskSeam is intended to work
+## How TaskSeam works toward that goal
 
 1. **Capture with permission.** Collect activity from sources you explicitly enable.
 2. **Connect related work.** Recognize when sessions belong to the same task and show uncertainty when a match is unclear.
@@ -131,7 +157,7 @@ The design is local-first: work state stays on your machine by default, with vis
 
 The initial proof focuses on **ChatGPT → Claude → Codex** for one project. Success means Codex receives the latest accepted decision, knows what it replaced, retains unresolved questions, and can show where each item came from without receiving unrelated private context.
 
-The remaining work for that proof is browser capture, state extraction, user corrections, and a complete setup flow.
+The public acceptance scenario and remaining milestones are tracked in [ROADMAP.md](ROADMAP.md).
 
 ## Development
 

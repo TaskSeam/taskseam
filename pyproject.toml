@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "taskseam"
 version = "0.1.0"
-description = "Local task checkpoints and context deltas across AI tools"
+description = "Versioned task state and evidence-backed deltas across AI tools"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
