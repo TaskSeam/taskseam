@@ -85,6 +85,7 @@ Initialize TaskSeam in a repository:
 ```bash
 cd my-project
 taskseam init "Build capture prototype"
+taskseam setup codex
 ```
 
 This creates private repository-local storage, an active task, and a `.taskseam/` Git ignore rule. Normal commands discover the workspace from the current directory or any directory beneath it.
@@ -107,16 +108,16 @@ Outside an initialized workspace, TaskSeam stores data at `~/.local/share/taskse
 
 TaskSeam exposes read-only MCP tools for listing tasks, reading current context, comparing checkpoints, and explaining an item's source.
 
-After installing TaskSeam:
+From an initialized TaskSeam workspace, configure Codex automatically:
 
 ```bash
-codex mcp add taskseam -- taskseam mcp
+taskseam setup codex
 codex mcp list
 ```
 
-The Codex CLI and IDE extension share MCP configuration, as described in the [official OpenAI MCP setup documentation](https://developers.openai.com/learn/docs-mcp).
+The setup command registers TaskSeam's stdio MCP server. It discovers the active workspace when Codex launches it, so the same configuration works across initialized repositories. The Codex CLI and IDE extension share MCP configuration, as described in the [official OpenAI MCP setup documentation](https://developers.openai.com/learn/docs-mcp).
 
-To use a specific database:
+Advanced users can still register a fixed database manually:
 
 ```bash
 codex mcp add taskseam --env TASKSEAM_DB=/absolute/path/to/taskseam.db -- taskseam mcp

@@ -64,6 +64,9 @@ def parser():
     record.add_argument("body")
     record.add_argument("--source", default="manual")
     record.add_argument("--supersedes")
+    setup = commands.add_parser("setup", help="Configure an AI tool to use TaskSeam")
+    setup.add_argument("tool", choices=("codex",))
+    setup.add_argument("--dry-run", action="store_true")
     return p
 
 
@@ -97,6 +100,13 @@ def main(argv=None):
                 return 0
             finally:
                 store.close()
+        if args.command == "setup":
+            from .setup import setup_codex
+            if not workspace:
+                raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
+            result = setup_codex(sys.executable, args.dry_run)
+            print(json.dumps(result, indent=2))
+            return 0
         if args.command == "serve":
             from .api import serve
             serve(args.db, args.host, args.port)
