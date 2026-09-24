@@ -1,12 +1,35 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "taskseam"
 version = "0.1.0"
 description = "Local task checkpoints and context deltas across AI tools"
+readme = "README.md"
 requires-python = ">=3.9"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{name = "TaskSeam contributors"}]
+keywords = ["ai", "mcp", "context", "handoff", "local-first"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development",
+]
+
+[project.urls]
+Homepage = "https://github.com/TaskSeam/taskseam"
+Repository = "https://github.com/TaskSeam/taskseam"
+Issues = "https://github.com/TaskSeam/taskseam/issues"
 
 [project.scripts]
 taskseam = "taskseam.__main__:main"

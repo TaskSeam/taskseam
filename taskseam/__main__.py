@@ -43,12 +43,29 @@ def parser():
     context.add_argument("task_id")
     explain = commands.add_parser("explain", help="Show an item's source event")
     explain.add_argument("item_id")
+    serve = commands.add_parser("serve", help="Run the localhost JSON API")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", default=8765, type=int)
+    commands.add_parser("mcp", help="Run the MCP server over standard input/output")
+    commands.add_parser("version", help="Print the installed version")
     return p
 
 
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "serve":
+            from .api import serve
+            serve(args.db, args.host, args.port)
+            return 0
+        if args.command == "mcp":
+            from .mcp import run
+            run(args.db)
+            return 0
+        if args.command == "version":
+            from . import __version__
+            print(__version__)
+            return 0
         store = Store(args.db)
         try:
             if args.command == "task":
@@ -68,7 +85,7 @@ def main(argv=None):
             elif args.command == "delta":
                 result = store.delta(args.base, args.head)
             elif args.command == "context":
-                result = {"task": store.task(args.task_id), "items": store.current_items(args.task_id)}
+                result = store.context(args.task_id)
             else:
                 result = store.explain(args.item_id)
             print(json.dumps(result, indent=2))

@@ -22,6 +22,11 @@ class Store:
         self.db = sqlite3.connect(str(self.path))
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA foreign_keys = ON")
+        self.db.execute("PRAGMA busy_timeout = 5000")
+        schema_version = self.db.execute("PRAGMA user_version").fetchone()[0]
+        if schema_version > 1:
+            self.db.close()
+            raise ValueError("Database was created by a newer TaskSeam version")
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS tasks (
                 id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT NOT NULL
@@ -43,6 +48,7 @@ class Store:
             CREATE INDEX IF NOT EXISTS events_task_idx ON events(task_id);
             CREATE INDEX IF NOT EXISTS items_task_idx ON items(task_id);
             CREATE INDEX IF NOT EXISTS checkpoints_task_idx ON checkpoints(task_id);
+            PRAGMA user_version = 1;
         """)
         self.db.commit()
 
@@ -63,6 +69,12 @@ class Store:
 
     def tasks(self):
         return [dict(row) for row in self.db.execute("SELECT * FROM tasks ORDER BY created_at DESC")]
+
+    def events(self, task_id):
+        self.task(task_id)
+        return [dict(row) for row in self.db.execute(
+            "SELECT * FROM events WHERE task_id = ? ORDER BY created_at, rowid", (task_id,)
+        )]
 
     def add_event(self, task_id, source, body):
         self.task(task_id)
@@ -119,6 +131,16 @@ class Store:
             self.db.execute("INSERT INTO checkpoints VALUES (?, ?, ?, ?)",
                             (checkpoint_id, task_id, _now(), json.dumps(snapshot)))
         return checkpoint_id
+
+    def checkpoints(self, task_id):
+        self.task(task_id)
+        return [dict(row) for row in self.db.execute(
+            "SELECT id, task_id, created_at FROM checkpoints WHERE task_id = ? ORDER BY rowid",
+            (task_id,),
+        )]
+
+    def context(self, task_id):
+        return {"task": self.task(task_id), "items": self.current_items(task_id)}
 
     def _checkpoint(self, checkpoint_id):
         row = self.db.execute("SELECT rowid AS sequence, * FROM checkpoints WHERE id = ?", (checkpoint_id,)).fetchone()
