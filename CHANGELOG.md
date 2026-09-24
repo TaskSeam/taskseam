@@ -12,3 +12,4 @@ All notable changes to TaskSeam will be documented here.
 - Add repository initialization, workspace discovery, active-task recording, and status commands.
 - Add one-command Codex MCP configuration for initialized workspaces.
 - Add review-first conversation state packets with shared source evidence.
+- Add question resolution as an evidence-backed state transition.

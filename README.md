@@ -101,6 +101,14 @@ taskseam status
 
 Use `--supersedes ITEM_ID` with `taskseam record` when a new item replaces an earlier item. The advanced `task`, `item`, `delta`, and `explain` commands accept explicit IDs for scripting and multi-task workflows.
 
+Resolve an open question into an accepted decision while preserving its history:
+
+```bash
+taskseam resolve QUESTION_ID \
+  "Keep SQLite canonical and export deterministic Markdown" \
+  --source codex
+```
+
 Output is JSON. Source names are labels you enter manually; the alpha does not verify or capture those sources.
 
 ## Import reviewed state from a conversation

@@ -36,6 +36,17 @@ class WorkspaceTests(unittest.TestCase):
             status = json.loads(self.run_cli(nested, "status").stdout)
             self.assertEqual(status["active_task"]["task"]["id"], initialized["active_task"])
 
+            question = json.loads(self.run_cli(
+                nested, "record", "question", "Readable raw data?", "--source", "claude"
+            ).stdout)["item_id"]
+            resolved = json.loads(self.run_cli(
+                nested, "resolve", question, "Export deterministic Markdown", "--source", "codex"
+            ).stdout)
+            self.assertEqual(resolved["resolved_question"], question)
+            current = json.loads(self.run_cli(nested, "context").stdout)["items"]
+            self.assertNotIn(question, {item["id"] for item in current})
+            self.assertIn(question, {item["resolves"] for item in current})
+
     def test_duplicate_init_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             self.run_cli(directory, "init")

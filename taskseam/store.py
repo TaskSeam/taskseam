@@ -24,7 +24,7 @@ class Store:
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.execute("PRAGMA busy_timeout = 5000")
         schema_version = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if schema_version > 1:
+        if schema_version > 2:
             self.db.close()
             raise ValueError("Database was created by a newer TaskSeam version")
         self.db.executescript("""
@@ -45,10 +45,15 @@ class Store:
                 id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
                 created_at TEXT NOT NULL, snapshot TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS resolutions (
+                question_id TEXT PRIMARY KEY REFERENCES items(id),
+                resolution_item_id TEXT NOT NULL UNIQUE REFERENCES items(id),
+                created_at TEXT NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS events_task_idx ON events(task_id);
             CREATE INDEX IF NOT EXISTS items_task_idx ON items(task_id);
             CREATE INDEX IF NOT EXISTS checkpoints_task_idx ON checkpoints(task_id);
-            PRAGMA user_version = 1;
+            PRAGMA user_version = 2;
         """)
         self.db.commit()
 
@@ -132,7 +137,9 @@ class Store:
     def items(self, task_id):
         self.task(task_id)
         rows = self.db.execute("""
-            SELECT i.*, e.source FROM items i JOIN events e ON e.id = i.event_id
+            SELECT i.*, e.source,
+                   (SELECT r.question_id FROM resolutions r WHERE r.resolution_item_id = i.id) AS resolves
+            FROM items i JOIN events e ON e.id = i.event_id
             WHERE i.task_id = ? ORDER BY i.created_at, i.rowid
         """, (task_id,)).fetchall()
         return [dict(row) for row in rows]
@@ -140,7 +147,32 @@ class Store:
     def current_items(self, task_id):
         rows = self.items(task_id)
         replaced = {row["supersedes"] for row in rows if row["supersedes"]}
-        return [row for row in rows if row["id"] not in replaced]
+        resolved = {row[0] for row in self.db.execute(
+            "SELECT question_id FROM resolutions WHERE question_id IN "
+            "(SELECT id FROM items WHERE task_id = ?)", (task_id,)
+        )}
+        return [row for row in rows if row["id"] not in replaced and row["id"] not in resolved]
+
+    def resolve_question(self, task_id, question_id, decision, source):
+        self.task(task_id)
+        question = self.db.execute(
+            "SELECT task_id, kind FROM items WHERE id = ?", (question_id,)
+        ).fetchone()
+        if question is None or question["task_id"] != task_id or question["kind"] != "question":
+            raise ValueError("Question must exist in the active task")
+        if self.db.execute("SELECT 1 FROM resolutions WHERE question_id = ?", (question_id,)).fetchone():
+            raise ValueError("Question has already been resolved")
+        if not isinstance(decision, str) or not decision.strip():
+            raise ValueError("Resolution decision cannot be empty")
+        event_id, item_id, created = _id(), _id(), _now()
+        with self.db:
+            self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
+                            (event_id, task_id, source, decision.strip(), created))
+            self.db.execute("INSERT INTO items VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (item_id, task_id, "decision", decision.strip(), event_id, None, created))
+            self.db.execute("INSERT INTO resolutions VALUES (?, ?, ?)",
+                            (question_id, item_id, created))
+        return item_id
 
     def explain(self, item_id):
         row = self.db.execute("""

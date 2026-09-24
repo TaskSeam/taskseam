@@ -43,6 +43,42 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.delta(self.store.checkpoint(self.task), self.store.checkpoint(other))
 
+    def test_resolving_question_creates_decision_and_delta(self):
+        question = self.store.add_item(self.task, "question", "Readable raw data?", "claude")
+        base = self.store.checkpoint(self.task)
+        decision = self.store.resolve_question(
+            self.task, question, "Keep SQLite canonical and export Markdown", "codex"
+        )
+        head = self.store.checkpoint(self.task)
+        current = self.store.current_items(self.task)
+        self.assertEqual([item["id"] for item in current], [decision])
+        self.assertEqual(current[0]["resolves"], question)
+        delta = self.store.delta(base, head)
+        self.assertEqual([item["id"] for item in delta["added"]], [decision])
+        self.assertEqual([item["id"] for item in delta["removed"]], [question])
+
+    def test_question_cannot_be_resolved_twice(self):
+        question = self.store.add_item(self.task, "question", "Readable raw data?", "claude")
+        self.store.resolve_question(self.task, question, "Export Markdown", "codex")
+        with self.assertRaises(ValueError):
+            self.store.resolve_question(self.task, question, "Export JSON", "manual")
+
+    def test_version_one_database_migrates(self):
+        path = Path(self.tmp.name) / "legacy.db"
+        legacy = Store(path)
+        legacy.db.execute("DROP TABLE resolutions")
+        legacy.db.execute("PRAGMA user_version = 1")
+        legacy.db.commit()
+        legacy.close()
+        migrated = Store(path)
+        try:
+            self.assertEqual(migrated.db.execute("PRAGMA user_version").fetchone()[0], 2)
+            self.assertIsNotNone(migrated.db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='resolutions'"
+            ).fetchone())
+        finally:
+            migrated.close()
+
 
 if __name__ == "__main__":
     unittest.main()

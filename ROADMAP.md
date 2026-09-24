@@ -24,6 +24,7 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 - [x] Local SQLite store
 - [x] Typed decisions, questions, and constraints
 - [x] Explicit supersession
+- [x] Explicit question resolution into an accepted decision
 - [x] Checkpoints and deltas
 - [x] Source-event provenance
 - [x] Localhost API

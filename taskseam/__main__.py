@@ -72,6 +72,10 @@ def parser():
     import_command.add_argument("path", nargs="?", help="JSON file; omit to read standard input")
     import_command.add_argument("--source", required=True)
     import_command.add_argument("--apply", action="store_true", help="Write the reviewed packet")
+    resolve = commands.add_parser("resolve", help="Resolve a question into an accepted decision")
+    resolve.add_argument("question_id")
+    resolve.add_argument("decision")
+    resolve.add_argument("--source", default="manual")
     return p
 
 
@@ -167,6 +171,12 @@ def main(argv=None):
                     raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
                 result = {"item_id": store.add_item(active_task(workspace), args.kind, args.body,
                                                      args.source, args.supersedes)}
+            elif args.command == "resolve":
+                if not workspace:
+                    raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
+                result = {"item_id": store.resolve_question(active_task(workspace), args.question_id,
+                                                             args.decision, args.source),
+                          "resolved_question": args.question_id}
             elif args.command == "checkpoint":
                 task_id = args.task_id or (active_task(workspace) if workspace else None)
                 if not task_id:
