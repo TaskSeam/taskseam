@@ -2,6 +2,17 @@
 
 TaskSeam aims to provide versioned task state across AI tools. This roadmap defines the behavior required to distinguish that product from a generic memory store or transcript handoff.
 
+## Proposed next priorities
+
+The [October 2026 ecosystem review](docs/NEXT_STEPS_RESEARCH.md) recommends:
+
+1. Reliable fresh-chat recovery (released in 0.2.0 with session-start hooks), followed by retry-safe delivery.
+2. Reproducible evaluations against transcripts, summaries, maintained Markdown, and memory retrieval.
+3. Deterministic exports, auditable corrections, and concurrent-write protection.
+4. Budgeted delivery with explicit omissions, then demand-led integrations.
+
+These are recommendations; the research memo separates implemented behavior from future work.
+
 ## North-star acceptance scenario
 
 1. A user discusses a feature in ChatGPT and considers storing state in Markdown.
@@ -30,7 +41,9 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 - [x] Localhost API
 - [x] MCP delivery with approved state updates
 - [ ] Schema migrations with compatibility tests
+  - Version-one migration has a regression test; broader compatibility coverage remains.
 - [ ] Export and deletion commands
+  - Deterministic JSON/Markdown export and item retirement shipped in 0.2.0; whole-task deletion remains.
 
 ## Milestone 2: Evidence ingestion
 
@@ -55,7 +68,10 @@ TaskSeam is ready for a broader alpha when this scenario works repeatedly on an 
 - [x] Record the checkpoint last delivered to each tool
 - [x] Generate a delta from that checkpoint
 - [ ] Filter by target, purpose, permissions, and token budget
-- [ ] Deliver the result through MCP
+- [x] Deliver the result through MCP
+- [x] Optional full current-state recovery for fresh chats
+- [x] Session-start hooks that inject current state in Claude Code and Codex
+- [ ] Acknowledge exact snapshots after successful delivery, with retry and concurrency tests
 - [ ] Preview and approve sensitive handoffs
 - [ ] Package a Claude Desktop extension with explicit project selection
 

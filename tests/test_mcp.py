@@ -44,6 +44,14 @@ class McpTests(unittest.TestCase):
         second = handle(self.store, request, active_task_id=task)
         second_value = json.loads(second["result"]["content"][0]["text"])
         self.assertFalse(second_value["changed"])
+        request["params"]["arguments"]["full"] = True
+        recovered = handle(self.store, request, active_task_id=task)
+        recovered_value = json.loads(recovered["result"]["content"][0]["text"])
+        self.assertFalse(recovered_value["changed"])
+        self.assertEqual(recovered_value["current"][0]["body"], "Keep data local")
+        request["params"]["arguments"]["full"] = "false"
+        invalid = handle(self.store, request, active_task_id=task)
+        self.assertTrue(invalid["result"]["isError"])
 
     def test_record_and_resolve_use_active_task(self):
         task = self.store.create_task("Active task")
