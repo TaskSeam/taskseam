@@ -8,12 +8,12 @@ advance any agent's delivery position, so ``taskseam_continue`` deltas still wor
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 from .render import brief
+from .setup import find_agent
 from .store import Store
 from .workspace import active_task, database_path, find_workspace
 
@@ -135,8 +135,8 @@ def install_detected(python_executable=None, dry_run=False, tools=None):
     for name, executable, locate in targets:
         if tools and name not in tools:
             continue
-        if not shutil.which(executable):
-            skipped.append({"tool": name, "reason": "not found on PATH"})
+        if not find_agent(executable)[0] and not locate().parent.is_dir():
+            skipped.append({"tool": name, "reason": "not installed"})
             continue
         result = install(locate(), python_executable, dry_run)
         if name == "codex":
