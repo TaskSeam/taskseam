@@ -9,10 +9,12 @@ Use TaskSeam as the project task-state layer when its MCP tools are available.
 
 ## Start or resume work
 
-1. Call `taskseam_continue` once with a stable lowercase target identifying this agent, such as `codex` or `claude-code`.
-2. Treat returned current items and changes as task evidence. Do not invent missing context.
-3. If there are no unseen changes, continue without making TaskSeam the focus of the response.
-4. Call `taskseam_explain` when the origin or reasoning for an item matters.
+1. If the session already starts with a "TaskSeam:" state brief (injected by the session-start hook), use it as current state. Still call `taskseam_continue` once so later changes arrive as a delta.
+2. Otherwise call `taskseam_continue` once with a stable lowercase target identifying this agent, such as `codex` or `claude-code`.
+   Pass `full: true` in a fresh chat or after losing context, because an unchanged delta does not mean the task is empty.
+3. Treat returned current items and changes as task evidence. Do not invent missing context.
+4. If there are no unseen changes, continue without making TaskSeam the focus of the response.
+5. Call `taskseam_explain` when the origin or reasoning for an item matters.
 
 ## Save durable state
 
@@ -27,6 +29,8 @@ Keep each body concise and self-contained. Set `source` to the originating agent
 Do not record brainstorming, recommendations awaiting acceptance, implementation details already evident from code, casual discussion, secrets, or unrelated personal context. Never turn a suggestion or inference into a decision.
 
 Use `taskseam_resolve` when the user explicitly answers a stored open question. Include `supersedes` when that answer also replaces an earlier decision.
+
+Use `taskseam_retire` with a short `reason` when the user says a stored item no longer applies and nothing replaces it. Item IDs accept unique prefixes of at least four characters.
 
 ## Interaction behavior
 

@@ -15,6 +15,10 @@ def _id():
     return uuid.uuid4().hex[:12]
 
 
+SCHEMA_VERSION = 4
+KINDS = ("decision", "constraint", "question")
+
+
 class Store:
     def __init__(self, path):
         self.path = Path(path).expanduser()
@@ -24,7 +28,7 @@ class Store:
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.execute("PRAGMA busy_timeout = 5000")
         schema_version = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if schema_version > 3:
+        if schema_version > SCHEMA_VERSION:
             self.db.close()
             raise ValueError("Database was created by a newer TaskSeam version")
         self.db.executescript("""
@@ -57,11 +61,16 @@ class Store:
                 delivered_at TEXT NOT NULL,
                 PRIMARY KEY (task_id, target)
             );
+            CREATE TABLE IF NOT EXISTS retirements (
+                item_id TEXT PRIMARY KEY REFERENCES items(id),
+                event_id TEXT NOT NULL REFERENCES events(id),
+                created_at TEXT NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS events_task_idx ON events(task_id);
             CREATE INDEX IF NOT EXISTS items_task_idx ON items(task_id);
             CREATE INDEX IF NOT EXISTS checkpoints_task_idx ON checkpoints(task_id);
-            PRAGMA user_version = 3;
         """)
+        self.db.execute("PRAGMA user_version = %d" % SCHEMA_VERSION)
         self.db.commit()
 
     def close(self):
@@ -106,6 +115,8 @@ class Store:
                 raise ValueError("Superseded item must exist in the same task and have the same kind")
             if self.db.execute("SELECT 1 FROM items WHERE supersedes = ?", (supersedes,)).fetchone():
                 raise ValueError("Item has already been superseded")
+            if self._is_retired(supersedes):
+                raise ValueError("Item has been retired and cannot be superseded")
         event_id, item_id = _id(), _id()
         with self.db:
             self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
@@ -145,7 +156,8 @@ class Store:
         self.task(task_id)
         rows = self.db.execute("""
             SELECT i.*, e.source,
-                   (SELECT r.question_id FROM resolutions r WHERE r.resolution_item_id = i.id) AS resolves
+                   (SELECT r.question_id FROM resolutions r WHERE r.resolution_item_id = i.id) AS resolves,
+                   (SELECT t.created_at FROM retirements t WHERE t.item_id = i.id) AS retired_at
             FROM items i JOIN events e ON e.id = i.event_id
             WHERE i.task_id = ? ORDER BY i.created_at, i.rowid
         """, (task_id,)).fetchall()
@@ -158,7 +170,71 @@ class Store:
             "SELECT question_id FROM resolutions WHERE question_id IN "
             "(SELECT id FROM items WHERE task_id = ?)", (task_id,)
         )}
-        return [row for row in rows if row["id"] not in replaced and row["id"] not in resolved]
+        current = [row for row in rows if row["id"] not in replaced and row["id"] not in resolved
+                   and row["retired_at"] is None]
+        for row in current:
+            del row["retired_at"]
+        return current
+
+    def _is_retired(self, item_id):
+        return self.db.execute("SELECT 1 FROM retirements WHERE item_id = ?", (item_id,)).fetchone() is not None
+
+    def resolve_item_id(self, reference, task_id=None):
+        """Expand a unique item ID prefix (at least four characters) to a full ID."""
+        if not isinstance(reference, str) or len(reference.strip()) < 4:
+            raise ValueError("Item references need at least four characters")
+        reference = reference.strip().lower()
+        query, params = "SELECT id FROM items WHERE id LIKE ? ESCAPE '\\'", [
+            reference.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"]
+        if task_id:
+            query += " AND task_id = ?"
+            params.append(task_id)
+        matches = [row[0] for row in self.db.execute(query, params).fetchall()]
+        if reference in matches:
+            return reference
+        if not matches:
+            raise ValueError("Unknown item: " + reference)
+        if len(matches) > 1:
+            raise ValueError("Ambiguous item reference {}: matches {}".format(
+                reference, ", ".join(sorted(matches))))
+        return matches[0]
+
+    def retire_item(self, task_id, item_id, reason, source):
+        """Remove a current item from task state without replacing it.
+
+        The item and its evidence remain in history; the retirement is its own event.
+        """
+        self.task(task_id)
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError("Retiring an item requires a reason")
+        if item_id not in {row["id"] for row in self.current_items(task_id)}:
+            row = self.db.execute("SELECT task_id FROM items WHERE id = ?", (item_id,)).fetchone()
+            if row is None or row["task_id"] != task_id:
+                raise ValueError("Item must exist in the active task")
+            raise ValueError("Only current items can be retired; this item is already superseded, "
+                             "resolved, or retired")
+        event_id, created = _id(), _now()
+        with self.db:
+            self.db.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
+                            (event_id, task_id, source, "Retired " + item_id + ": " + reason.strip(),
+                             created))
+            self.db.execute("INSERT INTO retirements VALUES (?, ?, ?)", (item_id, event_id, created))
+        return {"retired": item_id, "event_id": event_id}
+
+    def export(self, task_id, history=False):
+        """Return a deterministic, schema-versioned snapshot of a task."""
+        task = self.task(task_id)
+        fields = ("id", "kind", "body", "source", "created_at", "supersedes", "resolves")
+        rows = self.items(task_id) if history else self.current_items(task_id)
+        items = []
+        for row in rows:
+            item = {key: row[key] for key in fields}
+            if history:
+                item["retired_at"] = row["retired_at"]
+            items.append(item)
+        items.sort(key=lambda item: (KINDS.index(item["kind"]), item["created_at"], item["id"]))
+        return {"taskseam_export": 1, "history": history,
+                "task": {"id": task["id"], "title": task["title"]}, "items": items}
 
     def resolve_question(self, task_id, question_id, decision, source, supersedes=None):
         self.task(task_id)
@@ -214,6 +290,8 @@ class Store:
             "SELECT 1 FROM items WHERE supersedes = ? AND id != ?", (old_item_id, new_item_id)
         ).fetchone():
             raise ValueError("Old item has already been superseded")
+        if self._is_retired(old_item_id) or self._is_retired(new_item_id):
+            raise ValueError("Retired items cannot be linked by supersession")
         with self.db:
             self.db.execute("UPDATE items SET supersedes = ? WHERE id = ?", (old_item_id, new_item_id))
 
@@ -264,8 +342,11 @@ class Store:
             "removed": [by_id[item_id] for item_id in json.loads(base["snapshot"]) if item_id not in after],
         }
 
-    def handoff(self, task_id, target):
+    def handoff(self, task_id, target, full=False):
+        """Deliver a delta, optionally including current state for a fresh session."""
         self.task(task_id)
+        if not isinstance(full, bool):
+            raise ValueError("full must be a boolean")
         if not isinstance(target, str) or not target.strip():
             raise ValueError("Handoff target cannot be empty")
         target = target.strip().lower()
@@ -279,8 +360,11 @@ class Store:
         if base_id:
             previous = self._checkpoint(base_id)
             if json.loads(previous["snapshot"]) == current_ids:
-                return {"task": self.task(task_id), "target": target, "base": base_id,
-                        "head": base_id, "added": [], "removed": [], "changed": False}
+                result = {"task": self.task(task_id), "target": target, "base": base_id,
+                          "head": base_id, "added": [], "removed": [], "changed": False}
+                if full:
+                    result["current"] = current
+                return result
         head_id = self.checkpoint(task_id)
         if base_id:
             result = self.delta(base_id, head_id)
@@ -296,4 +380,6 @@ class Store:
                     delivered_at = excluded.delivered_at
             """, (task_id, target, head_id, _now()))
         result.update({"target": target, "changed": bool(result["added"] or result["removed"])})
+        if full:
+            result["current"] = current
         return result

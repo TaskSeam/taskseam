@@ -68,6 +68,8 @@ def parser():
     setup.add_argument("tool", nargs="?", choices=("codex", "claude-code"),
                        help="Configure one tool; omit to configure every detected tool")
     setup.add_argument("--dry-run", action="store_true")
+    setup.add_argument("--no-hooks", action="store_true",
+                       help="Skip the session-start hook that loads project state automatically")
     commands.add_parser("prompt", help="Print the prompt for creating an import packet")
     import_command = commands.add_parser("import", help="Preview or apply a TaskSeam state packet")
     import_command.add_argument("path", nargs="?", help="JSON file; omit to read standard input")
@@ -84,12 +86,52 @@ def parser():
     handoff = commands.add_parser("handoff", help="Deliver changes since a target's last handoff")
     handoff.add_argument("--to", required=True, dest="target")
     handoff.add_argument("--task-id", help="Defaults to the active workspace task")
+    handoff.add_argument("--full", action="store_true",
+                         help="Also include current state for a fresh chat or lost context")
+    show = commands.add_parser("show", help="Print the active task's state in readable form")
+    show.add_argument("task_id", nargs="?", help="Defaults to the active workspace task")
+    drop = commands.add_parser("drop", help="Retire an item that no longer applies")
+    drop.add_argument("item_id", help="Item ID or unique prefix")
+    drop.add_argument("--reason", required=True)
+    drop.add_argument("--source", default="manual")
+    export = commands.add_parser("export", help="Write deterministic JSON or Markdown state")
+    export.add_argument("--format", choices=("json", "markdown"), default="json")
+    export.add_argument("--history", action="store_true",
+                        help="Include superseded, resolved, and retired items (JSON only)")
+    destination = export.add_mutually_exclusive_group()
+    destination.add_argument("--output", "-o", help="Write to a file instead of standard output")
+    destination.add_argument("--agents-md", nargs="?", const="AGENTS.md", metavar="PATH",
+                             help="Maintain a TaskSeam block inside AGENTS.md (or PATH)")
+    export.add_argument("--task-id", help="Defaults to the active workspace task")
+    hook = commands.add_parser("hook", help="Agent session hooks")
+    hook_sub = hook.add_subparsers(dest="action", required=True)
+    hook_sub.add_parser("session-start", help="Print state for a SessionStart hook (reads hook JSON)")
+    hook_install = hook_sub.add_parser("install", help="Install the SessionStart hook")
+    hook_install.add_argument("tool", nargs="?", choices=("codex", "claude-code"))
+    hook_install.add_argument("--dry-run", action="store_true")
     return p
+
+
+def _task_or_active(task_id, workspace):
+    task_id = task_id or (active_task(workspace) if workspace else None)
+    if not task_id:
+        raise ValueError("Provide a task ID or run this command in a TaskSeam workspace")
+    return task_id
+
+
+def _agents_md_block(task, items):
+    from .render import brief
+    body = brief(task, items, header=False)
+    body = "\n".join("#" + line if line.startswith("## ") else line for line in body.splitlines())
+    return "## Project state (TaskSeam: {})\n\n{}\n".format(task["title"], body)
 
 
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "hook" and args.action == "session-start":
+            from .hooks import session_start
+            return session_start()
         if args.command == "init":
             title = args.title or Path.cwd().name
 
@@ -129,6 +171,10 @@ def main(argv=None):
                 result = setup_claude(sys.executable, args.dry_run)
             else:
                 result = setup_detected(sys.executable, args.dry_run)
+            if not args.no_hooks:
+                from .hooks import install_detected
+                tools = {"codex": ["codex"], "claude-code": ["claude-code"]}.get(args.tool)
+                result["session_hooks"] = install_detected(sys.executable, args.dry_run, tools)
             print(json.dumps(result, indent=2))
             return 0
         if args.command == "import":
@@ -164,6 +210,11 @@ def main(argv=None):
             from .mcp import run
             run(args.db, task_id=active_task(workspace) if workspace else None)
             return 0
+        if args.command == "hook":
+            from .hooks import install_detected
+            tools = [args.tool] if args.tool else None
+            print(json.dumps(install_detected(sys.executable, args.dry_run, tools), indent=2))
+            return 0
         if args.command == "version":
             from . import __version__
             print(__version__)
@@ -180,29 +231,66 @@ def main(argv=None):
             elif args.command == "event":
                 result = {"event_id": store.add_event(args.task_id, args.source, args.body)}
             elif args.command == "item":
+                supersedes = args.supersedes and store.resolve_item_id(args.supersedes, args.task_id)
                 result = {"item_id": store.add_item(args.task_id, args.kind, args.body,
-                                                     args.source, args.supersedes)}
-            elif args.command == "record":
+                                                     args.source, supersedes)}
+            elif args.command in ("record", "resolve", "supersede", "drop"):
                 if not workspace:
                     raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
-                result = {"item_id": store.add_item(active_task(workspace), args.kind, args.body,
-                                                     args.source, args.supersedes)}
-            elif args.command == "resolve":
-                if not workspace:
-                    raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
-                result = {"item_id": store.resolve_question(active_task(workspace), args.question_id,
-                                                             args.decision, args.source, args.supersedes),
-                          "resolved_question": args.question_id}
-            elif args.command == "supersede":
-                if not workspace:
-                    raise ValueError("No TaskSeam workspace found; run 'taskseam init'")
-                store.set_supersession(active_task(workspace), args.old_item_id, args.new_item_id)
-                result = {"superseded": args.old_item_id, "replacement": args.new_item_id}
+                task_id = active_task(workspace)
+
+                def ref(value):
+                    return store.resolve_item_id(value, task_id) if value else None
+
+                if args.command == "record":
+                    result = {"item_id": store.add_item(task_id, args.kind, args.body,
+                                                         args.source, ref(args.supersedes))}
+                elif args.command == "resolve":
+                    question_id = ref(args.question_id)
+                    result = {"item_id": store.resolve_question(task_id, question_id, args.decision,
+                                                                 args.source, ref(args.supersedes)),
+                              "resolved_question": question_id}
+                elif args.command == "supersede":
+                    old, new = ref(args.old_item_id), ref(args.new_item_id)
+                    store.set_supersession(task_id, old, new)
+                    result = {"superseded": old, "replacement": new}
+                else:
+                    result = store.retire_item(task_id, ref(args.item_id), args.reason, args.source)
+            elif args.command == "show":
+                from .render import brief
+                context = store.context(_task_or_active(args.task_id, workspace))
+                print(brief(context["task"], context["items"]), end="")
+                return 0
+            elif args.command == "export":
+                from .render import brief, splice_agents_md
+                task_id = _task_or_active(args.task_id, workspace)
+                if args.history and args.format != "json":
+                    raise ValueError("--history is only available with --format json")
+                if args.agents_md:
+                    context = store.context(task_id)
+                    target = Path(args.agents_md)
+                    existing = target.read_text(encoding="utf-8") if target.exists() else ""
+                    target.write_text(splice_agents_md(
+                        existing, _agents_md_block(context["task"], context["items"])), encoding="utf-8")
+                    print("taskseam: updated {}. It is usually committed to Git; review the block "
+                          "before sharing.".format(target), file=sys.stderr)
+                    return 0
+                if args.format == "json":
+                    text = json.dumps(store.export(task_id, history=args.history), indent=2,
+                                      sort_keys=True) + "\n"
+                else:
+                    snapshot = store.export(task_id)
+                    text = brief(snapshot["task"], snapshot["items"])
+                if args.output:
+                    Path(args.output).write_text(text, encoding="utf-8")
+                else:
+                    sys.stdout.write(text)
+                return 0
             elif args.command == "handoff":
                 task_id = args.task_id or (active_task(workspace) if workspace else None)
                 if not task_id:
                     raise ValueError("Provide a task ID or run this command in a TaskSeam workspace")
-                result = store.handoff(task_id, args.target)
+                result = store.handoff(task_id, args.target, full=args.full)
             elif args.command == "checkpoint":
                 task_id = args.task_id or (active_task(workspace) if workspace else None)
                 if not task_id:
@@ -216,7 +304,7 @@ def main(argv=None):
                     raise ValueError("Provide a task ID or run this command in a TaskSeam workspace")
                 result = store.context(task_id)
             else:
-                result = store.explain(args.item_id)
+                result = store.explain(store.resolve_item_id(args.item_id))
             print(json.dumps(result, indent=2))
             return 0
         finally:

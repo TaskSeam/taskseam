@@ -89,7 +89,7 @@ class StoreTests(unittest.TestCase):
         legacy.close()
         migrated = Store(path)
         try:
-            self.assertEqual(migrated.db.execute("PRAGMA user_version").fetchone()[0], 3)
+            self.assertEqual(migrated.db.execute("PRAGMA user_version").fetchone()[0], 4)
             self.assertIsNotNone(migrated.db.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='resolutions'"
             ).fetchone())
@@ -98,6 +98,42 @@ class StoreTests(unittest.TestCase):
             ).fetchone())
         finally:
             migrated.close()
+
+    def test_full_handoff_recovers_state_without_repeating_delta(self):
+        old = self.store.add_item(self.task, "decision", "Use Markdown", "user")
+        question = self.store.add_item(self.task, "question", "Offline?", "user")
+        initial = self.store.handoff(self.task, "codex")
+        self.store.handoff(self.task, "claude")
+        new = self.store.add_item(self.task, "decision", "Use SQLite", "user", old)
+        answer = self.store.resolve_question(self.task, question, "Require offline", "user")
+        recovered = self.store.handoff(self.task, " CODEX ", full=True)
+        self.assertEqual({i["id"] for i in recovered["current"]}, {new, answer})
+        self.assertEqual({i["id"] for i in recovered["removed"]}, {old, question})
+        self.assertEqual(recovered["base"], initial["head"])
+        checkpoints = len(self.store.checkpoints(self.task))
+        repeated = self.store.handoff(self.task, "codex", full=True)
+        self.assertFalse(repeated["changed"])
+        self.assertEqual(repeated["current"], recovered["current"])
+        self.assertEqual(len(self.store.checkpoints(self.task)), checkpoints)
+        self.assertNotIn("current", self.store.handoff(self.task, "codex"))
+        other = self.store.handoff(self.task, "claude")
+        self.assertEqual({i["id"] for i in other["added"]}, {new, answer})
+
+    def test_full_handoff_empty_and_invalid_requests(self):
+        empty = self.store.handoff(self.task, "codex", full=True)
+        self.assertEqual(empty["current"], [])
+        self.assertFalse(empty["changed"])
+        with self.assertRaisesRegex(ValueError, "boolean"):
+            self.store.handoff(self.task, "claude", full="false")
+        self.assertIsNone(self.store.handoff(self.task, "claude")["base"])
+
+    def test_full_handoff_excludes_other_tasks(self):
+        other = self.store.create_task("Private unrelated task")
+        self.store.add_item(other, "constraint", "Unrelated material", "user")
+        item = self.store.add_item(self.task, "constraint", "Local only", "user")
+        result = self.store.handoff(self.task, "codex", full=True)
+        self.assertEqual([i["id"] for i in result["current"]], [item])
+        self.assertEqual(result["current"][0]["source"], "user")
 
     def test_handoff_tracks_each_target_checkpoint(self):
         first = self.store.add_item(self.task, "decision", "Use SQLite", "claude")

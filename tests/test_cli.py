@@ -28,6 +28,10 @@ class CliTests(unittest.TestCase):
             self.assertEqual(delta["removed"][0]["id"], first)
             self.assertEqual(run("context", task)["items"][0]["body"], "Use SQLite")
             self.assertEqual(run("explain", second)["source"], "claude")
+            run("handoff", "--task-id", task, "--to", "codex")
+            recovered = run("handoff", "--task-id", task, "--to", "codex", "--full")
+            self.assertFalse(recovered["changed"])
+            self.assertEqual([i["id"] for i in recovered["current"]], [second])
 
 
 if __name__ == "__main__":

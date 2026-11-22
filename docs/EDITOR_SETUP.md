@@ -20,7 +20,13 @@ cd your-project
 taskseam init
 ```
 
-Then restart the editor or begin a new agent chat.
+Then restart the editor or begin a new agent chat. Setup also installs a session-start hook, so Claude Code and Codex begin every session with the project's current state without being asked. In Codex, approve the new hook once with `/hooks`.
+
+Check what agents will see at any time:
+
+```bash
+taskseam show
+```
 
 ## Codex in VS Code or Cursor
 

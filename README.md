@@ -64,7 +64,20 @@ Start with this prompt:
 
 > Continue this project. What accepted decisions, constraints, and open questions should I know?
 
-There are no routine TaskSeam commands after initialization.
+There are no routine TaskSeam commands after initialization. In Claude Code and Codex, `taskseam setup` installs a session-start hook, so each new chat starts with the project's state even before you ask. Codex asks you to trust the hook once in `/hooks`.
+
+## Everyday commands
+
+You rarely need these, because agents record state through their approval screen. They are useful when you want to check or correct that state yourself:
+
+```bash
+taskseam show                                   # what every agent will see, in plain text
+taskseam drop 3f9a --reason "Offline mode cut"  # retire an item that no longer applies
+taskseam export --agents-md                     # mirror state into AGENTS.md for non-MCP agents
+taskseam export --history                       # deterministic JSON, including superseded items
+```
+
+Item IDs accept any unique prefix of four or more characters.
 
 ## What changes for the user?
 
@@ -126,11 +139,11 @@ The [five-minute demo](https://github.com/TaskSeam/taskseam/blob/main/docs/DEMO.
 
 The [public roadmap](https://github.com/TaskSeam/taskseam/blob/main/ROADMAP.md) tracks the current priorities:
 
-1. Validate clean installation across supported operating systems.
-2. Publish the Python package to PyPI.
-3. Package and submit the browser extension.
-4. Improve automatic task matching and correction.
-5. Publish repeatable continuity evaluations.
+1. Retry-safe delivery: acknowledge exactly what an agent received.
+2. Publish repeatable continuity evaluations.
+3. Validate clean installation across supported operating systems.
+4. Package and submit the browser extension.
+5. Improve automatic task matching and correction.
 
 ## Development
 
