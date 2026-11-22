@@ -33,10 +33,11 @@ TaskSeam stores the current task state under the project's `.taskseam/` director
 
 ## Quick start
 
-Install TaskSeam as an isolated command-line application:
+Install TaskSeam as an isolated command-line application, then watch it work in a throwaway project:
 
 ```bash
 pipx install taskseam
+taskseam demo      # one minute, no agents or settings touched
 ```
 
 Standard pip installation also works:
@@ -45,7 +46,7 @@ Standard pip installation also works:
 python3 -m pip install taskseam
 ```
 
-Connect the supported agents installed on your computer:
+Connect the supported agents installed on your computer. Their CLIs or VS Code/Cursor extensions are detected automatically:
 
 ```bash
 taskseam setup
@@ -71,6 +72,7 @@ There are no routine TaskSeam commands after initialization. In Claude Code and 
 You rarely need these, because agents record state through their approval screen. They are useful when you want to check or correct that state yourself:
 
 ```bash
+taskseam doctor                                 # is everything connected? prints the fix if not
 taskseam show                                   # what every agent will see, in plain text
 taskseam drop 3f9a --reason "Offline mode cut"  # retire an item that no longer applies
 taskseam export --agents-md                     # mirror state into AGENTS.md for non-MCP agents

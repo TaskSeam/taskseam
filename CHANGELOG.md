@@ -2,6 +2,22 @@
 
 All notable changes to TaskSeam will be documented here.
 
+## 0.2.1 - 2026-11-21
+
+- Fix setup for editor-only users. `taskseam setup` now finds the Claude Code and Codex
+  CLIs bundled inside the VS Code, VS Code Insiders, Cursor, and Windsurf extensions.
+  Previously it skipped any agent missing from `PATH`, so extension-only installs were
+  never connected.
+- Add `taskseam demo`, a one-minute walkthrough in a temporary project that needs no
+  agents, accounts, or settings changes.
+- Add `taskseam doctor`. It checks each agent's MCP registration and session-start hook
+  (including hooks pointing at a removed Python), locates the project or nearby projects
+  when an editor is opened in the wrong folder, summarizes project state, and warns when
+  `.taskseam/` is not ignored by Git. Every problem includes the command that fixes it.
+- `taskseam setup` and `taskseam init` print plain-language next steps on standard error.
+  Their JSON output is unchanged.
+- CI tests Python 3.9 on ubuntu-24.04 and uses Node 24 actions.
+
 ## 0.2.0 - 2026-11-21
 
 Upgrade with `pipx upgrade taskseam` (or `python3 -m pip install -U taskseam`), then rerun

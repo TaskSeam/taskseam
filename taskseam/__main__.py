@@ -103,6 +103,12 @@ def parser():
     destination.add_argument("--agents-md", nargs="?", const="AGENTS.md", metavar="PATH",
                              help="Maintain a TaskSeam block inside AGENTS.md (or PATH)")
     export.add_argument("--task-id", help="Defaults to the active workspace task")
+    demo = commands.add_parser("demo", help="One-minute walkthrough in a temporary project")
+    demo.add_argument("--pause", type=float, default=None, help="Seconds between steps")
+    doctor = commands.add_parser("doctor", help="Check agent connections and this project's state")
+    doctor.add_argument("--json", action="store_true", help="Print machine-readable results")
+    doctor.add_argument("--skip-mcp", action="store_true",
+                        help="Do not ask agent CLIs whether the MCP server is registered")
     hook = commands.add_parser("hook", help="Agent session hooks")
     hook_sub = hook.add_subparsers(dest="action", required=True)
     hook_sub.add_parser("session-start", help="Print state for a SessionStart hook (reads hook JSON)")
@@ -119,6 +125,26 @@ def _task_or_active(task_id, workspace):
     return task_id
 
 
+def _print_setup_summary(result, dry_run, tool=None):
+    names = {"claude-code": "Claude Code", "codex": "Codex"}
+    connected = [{"tool": tool, **result}] if tool else result.get("configured", [])
+    lines = []
+    for entry in connected:
+        if entry.get("tool"):
+            how = entry.get("found_via", "")
+            lines.append("  {} {}{}".format("would connect" if dry_run else "connected", names[entry["tool"]],
+                                            " (" + how + ")" if how and how != "PATH" else ""))
+    for entry in result.get("skipped", []):
+        lines.append("  skipped {}: {}".format(names.get(entry["tool"], entry["tool"]), entry["reason"]))
+    for entry in (result.get("session_hooks") or {}).get("hooks", []):
+        if entry["tool"] == "codex" and entry["status"] != "unchanged":
+            lines.append("  Codex: open /hooks once and trust the TaskSeam hook")
+    if lines:
+        print("\nTaskSeam setup" + (" (dry run, nothing written)" if dry_run else "") + ":\n" +
+              "\n".join(lines) + "\nNext: cd your-project && taskseam init, then `taskseam doctor`.",
+              file=sys.stderr)
+
+
 def _agents_md_block(task, items):
     from .render import brief
     body = brief(task, items, header=False)
@@ -129,6 +155,17 @@ def _agents_md_block(task, items):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.command == "demo":
+            from .demo import run as run_demo
+            return run_demo(args.pause)
+        if args.command == "doctor":
+            from .doctor import diagnose, render
+            sections = diagnose(probe_mcp=not args.skip_mcp)
+            if args.json:
+                print(json.dumps([{"section": title, "checks": checks} for title, checks in sections],
+                                 indent=2))
+                return 1 if any(c["status"] == "fail" for _, cs in sections for c in cs) else 0
+            return render(sections)
         if args.command == "hook" and args.action == "session-start":
             from .hooks import session_start
             return session_start()
@@ -145,6 +182,9 @@ def main(argv=None):
             root, config = initialize(Path.cwd(), title, create_task)
             print(json.dumps({"workspace": str(root), "project": config["project"],
                               "active_task": config["active_task"]}, indent=2))
+            print("\nTaskSeam is ready in {}.\nNext: open this folder in Claude Code or Codex and "
+                  "start a new chat.\nCheck the connection any time with: taskseam doctor".format(root),
+                  file=sys.stderr)
             return 0
         if args.command == "prompt":
             from .importer import PACKET_PROMPT
@@ -176,6 +216,7 @@ def main(argv=None):
                 tools = {"codex": ["codex"], "claude-code": ["claude-code"]}.get(args.tool)
                 result["session_hooks"] = install_detected(sys.executable, args.dry_run, tools)
             print(json.dumps(result, indent=2))
+            _print_setup_summary(result, args.dry_run, args.tool)
             return 0
         if args.command == "import":
             from .importer import parse_packet
