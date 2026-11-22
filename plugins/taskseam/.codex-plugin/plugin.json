@@ -1,6 +1,6 @@
 {
   "name": "taskseam",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Continue versioned task state across AI agents with local evidence and per-agent deltas.",
   "author": {
     "name": "TaskSeam contributors",

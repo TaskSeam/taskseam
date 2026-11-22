@@ -2,6 +2,27 @@
 
 All notable changes to TaskSeam will be documented here.
 
+## 0.2.0 - 2026-11-21
+
+Upgrade with `pipx upgrade taskseam` (or `python3 -m pip install -U taskseam`), then rerun
+`taskseam setup` to install the session-start hook. Databases upgrade to schema version 4
+automatically; once upgraded, they cannot be opened by 0.1.x.
+
+- Add optional full current-state recovery to MCP continuation and CLI handoff
+  for fresh chats and lost context, preserving normal per-target deltas.
+- Add recovery regression coverage and an evidence-linked next-step research memo.
+- Load project state automatically: `taskseam setup` installs a read-only SessionStart hook
+  for Claude Code and Codex (`--no-hooks` to skip; `taskseam hook install` to manage it).
+- Add `taskseam show`, a readable view of the state agents receive.
+- Add `taskseam drop` and the `taskseam_retire` MCP tool. They remove an item that no longer
+  applies, recording the reason as an event. The database schema moves to version 4.
+- Add deterministic `taskseam export` (JSON with optional history, or Markdown) and
+  `--agents-md`, which maintains a marked block in AGENTS.md for agents without MCP.
+- Accept unique item ID prefixes in the CLI and MCP tools.
+- MCP: negotiate protocol revisions 2025-11-25, 2025-06-18, and 2025-03-26; return
+  `structuredContent`; add a `continue` prompt and a current-state resource.
+- Briefs with a size budget report omitted item counts instead of truncating silently.
+
 ## 0.1.1 - 2026-09-24
 
 - Use the public PyPI installation command throughout the onboarding experience.
